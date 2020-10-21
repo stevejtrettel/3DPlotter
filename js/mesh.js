@@ -174,20 +174,22 @@ function initialCondition(t, n) {
 
 
 
-function createParametricCurve(t, n) {
+function createGeodesic(t, n, widthFactor) {
     points = [];
 
-    let i;
+
+    let tubeWidth = widthFactor * params.width;
+    let samples = 0.15 * params.res * params.length;
+
 
     let ui, vi;
-
 
     //initial tangent vector to geodesic;
     let state = initialCondition(t, n);
 
     let numSteps = params.length / params.step;
 
-    for (i = 0; i < numSteps; i++) {
+    for (let i = 0; i < numSteps; i++) {
 
         ui = (state[0]).x;
         vi = (state[0]).y;
@@ -207,10 +209,7 @@ function createParametricCurve(t, n) {
     curve = new THREE.CatmullRomCurve3(points);
 
     //set the number of interpolation points here!
-    let geodesic = new THREE.TubeBufferGeometry(curve, 10 * params.length, params.width, 15, false);
-
-
-    geodesic = geodesic.toNonIndexed();
+    let geodesic = new THREE.TubeBufferGeometry(curve, 10 * params.length, tubeWidth, 15, false);
 
 
 
@@ -226,22 +225,52 @@ function createParametricCurve(t, n) {
     let start = points[0];
     let end = points.slice(-1)[0] //endpoint
 
-    let endBall = new THREE.SphereBufferGeometry(2. * params.width, 15, 15);
-    endBall.translate(end.x, end.y, end.z);
-    endBall = endBall.toNonIndexed();
+    let ball = new THREE.SphereBufferGeometry(2. * tubeWidth, 15, 15);
 
-    let startBall = new THREE.SphereBufferGeometry(2. * params.width, 15, 15);
-    startBall.translate(start.x, start.y, start.z);
-    startBall = startBall.toNonIndexed();
+
+    let endBall = ball.clone().translate(end.x, end.y, end.z);
+    let startBall = ball.clone().translate(start.x, start.y, start.z);
 
     let merged = BufferGeometryUtils.mergeBufferGeometries([geodesic, startBall, endBall]);
+
+    return merged;
+}
+
+
+//====end of geodesic stuff
+
+
+
+
+
+function createGeodesicSpray(t, spraySize) {
+
+    let geodesics = [];
+
+    //add the middle geodesic:
+    geodesics.push(createGeodesic(t, 0, 1));
+
+    let ray;
+    let widthFactor;
+
+    for (let i = 1; i < spraySize; i++) {
+
+        widthFactor = 1 / (1 + i);
+
+        ray = createGeodesic(t, i, widthFactor);
+        geodesics.push(ray);
+
+        ray = createGeodesic(t, -i, widthFactor);
+        geodesics.push(ray);
+    }
+
+
+    let merged = BufferGeometryUtils.mergeBufferGeometries(geodesics);
 
     return merged;
 
 }
 
-
-//====end of geodesic stuff
 
 
 
@@ -338,8 +367,8 @@ function createMeshes(cubeTexture) {
 
 
     //make curve based on u,v coordinates;
-    geometry = createParametricCurve(0, 0);
-
+    //geometry = createGeodesic(0, 0);
+    geometry = createGeodesicSpray(0, params.spray);
 
 
     curveMesh = new THREE.Mesh(geometry, curveMaterial);
@@ -379,15 +408,12 @@ function guiMeshUpdate() { //all the gui updates
 
     //
     //update the mesh graphics parameters;
-
     parametricMesh.material.metalness = params.metal;
     parametricMesh.material.roughness = params.rough / 4.;
 
-
-
     curveMesh.material.color.set(params.color);
-    //    startBallMesh.material.color.set(params.color);
-    //    endBallMesh.material.color.set(params.color);
+    curveMesh.material.metalness = params.metal;
+    curveMesh.material.roughness = params.rough / 4.;
 
     drawTex = params.drawTex;
 
@@ -415,8 +441,7 @@ function meshUpdate(currentTime) {
     //updates to the meshes in the scene
     meshRotate(parametricMesh);
     meshRotate(curveMesh);
-    //meshRotate(startBallMesh);
-    //meshRotate(endBallMesh);
+
 
     // wiggle the parametric mesh
     parametricMesh.geometry.dispose();
@@ -432,18 +457,8 @@ function meshUpdate(currentTime) {
 
     // wiggle the curve mesh
     curveMesh.geometry.dispose();
-    curveMesh.geometry = createParametricCurve(currentTime, 0);
+    curveMesh.geometry = createGeodesicSpray(currentTime, params.spray);
 
-
-    //move the sphere when the surface changes
-    //when we re-ran createParametricCurve above, it reset points:
-    //thus we can get the start point and end point of the curve and move the balls appropriately
-
-    //    let pos = points.slice(-1)[0]
-    //    endBallMesh.position.set(pos.x, pos.y, pos.z);
-    //
-    //    pos = points[0]
-    //    startBallMesh.position.set(pos.x, pos.y, pos.z);
 
 
 }
