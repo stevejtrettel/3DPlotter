@@ -23,7 +23,7 @@ let params = {
     c: 0.2,
     p: 0.39,
     angle: 3.14,
-    spray: 0,
+    spray: 1,
     wiggle: 0.2,
     length: 100,
     step: 0.3,
@@ -70,7 +70,7 @@ function createGUI() {
 
     parameters.add(params, 'p', 0, 1, 0.01).name('Position');
     parameters.add(params, 'angle', 0, 6.28, 0.01).name('Angle');
-    parameters.add(params, 'spray', 0, 10, 1).name('Spray');
+    parameters.add(params, 'spray', 1, 10, 1).name('Spray');
 
     parameters.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');
     parameters.add(params, 'length', 0.1, 300, 0.1).name('Length');

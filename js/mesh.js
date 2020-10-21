@@ -245,29 +245,37 @@ function createGeodesic(t, n, widthFactor) {
 
 function createGeodesicSpray(t, spraySize) {
 
-    let geodesics = [];
+    let ray = createGeodesic(t, 0, 1);
 
-    //add the middle geodesic:
-    geodesics.push(createGeodesic(t, 0, 1));
+    if (spraySize > 1) {
 
-    let ray;
-    let widthFactor;
+        let geodesics = [];
 
-    for (let i = 1; i < spraySize; i++) {
-
-        widthFactor = 1 / (1 + i);
-
-        ray = createGeodesic(t, i, widthFactor);
+        //add the middle geodesic:
         geodesics.push(ray);
 
-        ray = createGeodesic(t, -i, widthFactor);
-        geodesics.push(ray);
+
+        let widthFactor;
+
+        for (let i = 1; i < spraySize; i++) {
+
+            widthFactor = 1 / (1 + i);
+
+            ray = createGeodesic(t, i, widthFactor);
+            geodesics.push(ray);
+
+            ray = createGeodesic(t, -i, widthFactor);
+            geodesics.push(ray);
+        }
+
+
+        let merged = BufferGeometryUtils.mergeBufferGeometries(geodesics);
+
+        return merged;
     }
 
-
-    let merged = BufferGeometryUtils.mergeBufferGeometries(geodesics);
-
-    return merged;
+    //if not then just the one geodesic;
+    return ray;
 
 }
 
