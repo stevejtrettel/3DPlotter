@@ -2,6 +2,10 @@
 //=============================================
 import * as THREE from './libs/three.module.js';
 
+import { //for merging buffer geometries
+    BufferGeometryUtils
+} from './libs/BufferGeometryUtils.js';
+
 import {
     params
 } from './ui.js';
@@ -206,7 +210,34 @@ function createParametricCurve(t, n) {
     let geodesic = new THREE.TubeBufferGeometry(curve, 10 * params.length, params.width, 15, false);
 
 
-    return geodesic;
+    geodesic = geodesic.toNonIndexed();
+
+
+
+    // return geodesic;
+
+
+
+
+    //=====if you want balls on the end of the geodesic
+    //slows it down slightly right now
+
+    //get the endpoint of the curve:
+    let start = points[0];
+    let end = points.slice(-1)[0] //endpoint
+
+    let endBall = new THREE.SphereBufferGeometry(2. * params.width, 15, 15);
+    endBall.translate(end.x, end.y, end.z);
+    endBall = endBall.toNonIndexed();
+
+    let startBall = new THREE.SphereBufferGeometry(2. * params.width, 15, 15);
+    startBall.translate(start.x, start.y, start.z);
+    startBall = startBall.toNonIndexed();
+
+    let merged = BufferGeometryUtils.mergeBufferGeometries([geodesic, startBall, endBall]);
+
+    return merged;
+
 }
 
 
@@ -315,25 +346,25 @@ function createMeshes(cubeTexture) {
     scene.add(curveMesh);
 
 
-
-
-    //put a sphere at the start of the geodesic
-    geometry = new THREE.SphereGeometry(2 * params.width, 32, 32);
-    startBallMesh = new THREE.Mesh(geometry, curveMaterial);
-    //get the initial condition from the curves to place it
-    let pos = points[0];
-    startBallMesh.position.set(pos.x, pos.y, pos.z);
-    scene.add(startBallMesh);
-
-
-
-    //    //put a sphere at the END of the geodesic
-    geometry = new THREE.SphereGeometry(1.25 * params.width, 32, 32);
-    endBallMesh = new THREE.Mesh(geometry, curveMaterial);
-    //get the initial condition from the curves to place it
-    pos = points.slice(-1)[0];
-    endBallMesh.position.set(pos.x, pos.y, pos.z);
-    scene.add(endBallMesh);
+    //
+    //
+    //    //put a sphere at the start of the geodesic
+    //    geometry = new THREE.SphereGeometry(2 * params.width, 32, 32);
+    //    startBallMesh = new THREE.Mesh(geometry, curveMaterial);
+    //    //get the initial condition from the curves to place it
+    //    let pos = points[0];
+    //    startBallMesh.position.set(pos.x, pos.y, pos.z);
+    //    scene.add(startBallMesh);
+    //
+    //
+    //
+    //    //    //put a sphere at the END of the geodesic
+    //    geometry = new THREE.SphereGeometry(1.25 * params.width, 32, 32);
+    //    endBallMesh = new THREE.Mesh(geometry, curveMaterial);
+    //    //get the initial condition from the curves to place it
+    //    pos = points.slice(-1)[0];
+    //    endBallMesh.position.set(pos.x, pos.y, pos.z);
+    //    scene.add(endBallMesh);
 
 }
 
@@ -384,8 +415,8 @@ function meshUpdate(currentTime) {
     //updates to the meshes in the scene
     meshRotate(parametricMesh);
     meshRotate(curveMesh);
-    meshRotate(startBallMesh);
-    meshRotate(endBallMesh);
+    //meshRotate(startBallMesh);
+    //meshRotate(endBallMesh);
 
     // wiggle the parametric mesh
     parametricMesh.geometry.dispose();
@@ -408,12 +439,11 @@ function meshUpdate(currentTime) {
     //when we re-ran createParametricCurve above, it reset points:
     //thus we can get the start point and end point of the curve and move the balls appropriately
 
-    let pos = points.slice(-1)[0]
-    endBallMesh.position.set(pos.x, pos.y, pos.z);
-
-    pos = points[0]
-    startBallMesh.position.set(pos.x, pos.y, pos.z);
-
+    //    let pos = points.slice(-1)[0]
+    //    endBallMesh.position.set(pos.x, pos.y, pos.z);
+    //
+    //    pos = points[0]
+    //    startBallMesh.position.set(pos.x, pos.y, pos.z);
 
 
 }
