@@ -337,7 +337,7 @@ function createMeshes(cubeTexture) {
 
 
     colorMaterial = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
+        color: 0x242466,
         metalness: params.metal,
         roughness: params.rough,
         envMap: cubeTexture,

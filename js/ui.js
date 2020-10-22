@@ -25,13 +25,13 @@ let params = {
     angle: 3.14,
     spray: 1,
     wiggle: 0.2,
-    length: 100,
+    length: 10,
     step: 0.3,
     //    xCoordText: xCoordText,
     //    yCoordText: yCoordText,
     //    zCoordText: zCoordText,
     drawTex: 0,
-    color: 0x1e43,
+    color: 0xF5B62D,
     intensity: 0.5,
     metal: 0.,
     rough: 0.,
@@ -73,7 +73,7 @@ function createGUI() {
     parameters.add(params, 'spray', 1, 10, 1).name('Spray');
 
     parameters.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');
-    parameters.add(params, 'length', 0.1, 300, 0.1).name('Length');
+    parameters.add(params, 'length', 0.1, 50, 0.1).name('Length');
     parameters.add(params, 'step', 0.01, 0.5, 0.01).name('StepSize');
 
 
