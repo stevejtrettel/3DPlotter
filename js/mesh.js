@@ -16,15 +16,15 @@ import {
 } from './scene.js';
 
 
-import {
-    A,
-    B,
-    acceleration,
-    surfaceParamsUpdate,
-    surface,
-    rescaleU,
-    rescaleV
-} from './surface.js';
+//import {
+//    A,
+//    B,
+//    acceleration,
+//    surfaceParamsUpdate,
+//    surface,
+//    rescaleU,
+//    rescaleV
+//} from './surface.js';
 
 let meshes;
 
@@ -57,82 +57,27 @@ let scalingFactor = 5;
 //=============================================
 
 
-function createParametricSurface(t) {
-
-    return new THREE.ParametricBufferGeometry(
-        (u, v, dest) => {
-
-            //rescale based on the size of the parameterization domain
-            let U = rescaleU(u);
-            let V = rescaleV(v);
-
-            let P = surface(U, V);
-
-
-            dest.set(P.x, P.y, P.z).multiplyScalar(scalingFactor);
-        },
-        params.res, params.res //slices and stacks
-    )
-
-}
-
-
+//function createParametricSurface(t) {
+//
+//    return new THREE.ParametricBufferGeometry(
+//        (u, v, dest) => {
+//
+//            //rescale based on the size of the parameterization domain
+//            let U = rescaleU(u);
+//            let V = rescaleV(v);
+//
+//            let P = surface(U, V);
+//
+//
+//            dest.set(P.x, P.y, P.z).multiplyScalar(scalingFactor);
+//        },
+//        params.res, params.res //slices and stacks
+//    )
+//
+//}
 
 
 
-
-
-let pos = new THREE.Vector2();
-let vel = new THREE.Vector2();
-let acc = new THREE.Vector2();
-//do one step of numerical integration of the geodesic equations
-//state is a pair [pos,vel]
-
-
-
-//takes in Vector4[pos,vel] and returns Vector4[vel, acc]
-function stateDeriv(st4, t) {
-
-    let pos = new THREE.Vector2(st4.x, st4.y);
-    let vel = new THREE.Vector2(st4.z, st4.w);
-
-    let acc = acceleration([pos, vel], t);
-
-    return new THREE.Vector4(vel.x, vel.y, acc.x, acc.y);
-}
-
-
-
-
-//do Runge Kutta 4
-function geodesicOneStep(state, t) {
-
-    let step = params.step;
-    //unpack the position and velocity
-    pos = state[0];
-    vel = state[1];
-
-    let st4 = new THREE.Vector4(pos.x, pos.y, vel.x, vel.y);
-
-    let k1 = stateDeriv(st4, t + 0.5 * step).multiplyScalar(step);
-
-    let k2 = stateDeriv(st4.clone().add(k1.clone().multiplyScalar(0.5)), t + 0.5 * step).multiplyScalar(step);
-
-    let k3 = stateDeriv(st4.clone().add(k2.clone().multiplyScalar(0.5)), t + 0.5 * step).multiplyScalar(step);
-
-    let k4 = stateDeriv(st4.clone().add(k3), t + 0.5 * step).multiplyScalar(step);
-
-    let adjustment = k1.clone().add(k2.clone().multiplyScalar(2));
-    adjustment.add(k3.clone().multiplyScalar(2));
-    adjustment.add(k4);
-
-    let soltn = st4.clone().add(adjustment.multiplyScalar(1 / 6));
-
-    //now need to break the solution down into the right type of object to return; a state
-    pos = new THREE.Vector2(soltn.x, soltn.y);
-    vel = new THREE.Vector2(soltn.z, soltn.w);
-    return [pos, vel];
-}
 
 
 
@@ -140,67 +85,118 @@ function geodesicOneStep(state, t) {
 
 
 //gives the initial condition as a function of time
+//special for geodesics at the origin
 //n is the number of curve we are on
 function initialCondition(t, n) {
-    let pv = rescaleV(params.p);
-    let wiggle = params.wiggle / 10;
-    //==== INITIAL POSITION
 
-    //start from center
-    let pos = new THREE.Vector2(3.14, pv + 3.14 / 8.);
+    let wiggle = params.wiggle;
 
-    //start from a corner
-    //let pos = new THREE.Vector2(uMin + uRng / 8, vMin + uRng / 8);
+    let phi = 0.2;
+    let theta = wiggle;
 
-
-    //===== SPACING
-    let spacing = 3.14 / 90;
-
-    //rotate back and forth
-    //let theta = 3.14 / 8. * (Math.sin(t / 3) + 1) + 3.14 / 8 + n * 3.14 / 90;
-
-    //rotate in a circle
-    //let theta = t / 5 + n * spacing;
-
-    //control angle with slider
-    let theta = params.angle + n * spacing + Math.cos(t) * wiggle;
-
-    //assemble the velocity vector
-    let vel = new THREE.Vector2(Math.cos(theta), Math.sin(theta));
-
-    return [pos, vel];
+    return [phi, theta];
 }
 
 
 
 
-function createGeodesic(t, n, widthFactor) {
+
+
+//
+//
+//
+//function createNilCurve(a, c, theta) {
+//
+//    THREE.Curve.call(this);
+//
+//    this.scale = (1 === undefined) ? 1 : 1;
+//
+//}
+//
+//createNilCurve.prototype = Object.create(THREE.Curve.prototype);
+//
+//createNilCurve.prototype.constructor = createNilCurve;
+//
+//createNilCurve.prototype.getPoint = function (a, c, theta, s) {
+//
+//
+//    let x, y, z;
+//
+//    if (c == 0) {
+//        x = t * Math.cos(theta);
+//        y = t * Math.sin(theta);
+//        z = 0;
+//    } else { //geodesic flow
+//        x = 2. * a / c * Math.sin(c * s / 2) * Math.cos(c * s / 2 + theta);
+//        y = 2. * a / c * Math.sin(c * s / 2) * Math.sin(c * s / 2 + theta);
+//        z = c * s + a * a / (2 * c * c) * (c * s - Math.sin(c * s));
+//        console.log(x);
+//    }
+//
+//    return new THREE.Vector3(x, y, -z).multiplyScalar(scalingFactor);
+//
+//
+//};
+//
+//
+
+
+
+
+
+
+function nilGeodesicPoint(phi, theta, s) {
+    //vel is spherical coordinates
+
+
+    //this is the geodesic from the origin
+    let a = Math.sin(phi);
+    let c = Math.cos(phi);
+
+
+    let x, y, z;
+
+    if (c == 0) {
+        x = t * Math.cos(theta);
+        y = t * Math.sin(theta);
+        z = 0;
+    } else { //geodesic flow
+        x = 2. * a / c * Math.sin(c * s / 2) * Math.cos(c * s / 2 + theta);
+        y = 2. * a / c * Math.sin(c * s / 2) * Math.sin(c * s / 2 + theta);
+        z = c * s + a * a / (2 * c * c) * (c * s - Math.sin(c * s));
+    }
+    return new THREE.Vector3(x, y, -z);
+}
+
+
+
+
+
+function createGeodesic(v, t, widthFactor) {
+
+    let phi = Math.acos(v.z);
+    let theta = Math.atan2(v.y, v.x);
+
+
     points = [];
 
 
     let tubeWidth = widthFactor * params.width;
-    let samples = 0.15 * params.res * params.length;
+    let samples = 2. * params.length;
 
-
-    let ui, vi;
 
     //initial tangent vector to geodesic;
-    let state = initialCondition(t, n);
+    // let state = initialCondition(t, n);
 
-    let numSteps = params.length / params.step;
+
+    let numSteps = params.length / 1;
 
     for (let i = 0; i < numSteps; i++) {
 
-        ui = (state[0]).x;
-        vi = (state[0]).y;
-
-        let Pi = surface(ui, vi);
+        let P = nilGeodesicPoint(phi, theta, i * 1);
 
         //append points to the list
-        points.push(Pi.multiplyScalar(scalingFactor));
-
-        //move forward one step along the geodesic in UV coordinates
-        state = geodesicOneStep(state, t);
+        points.push(P.multiplyScalar(scalingFactor));
 
     }
 
@@ -213,27 +209,27 @@ function createGeodesic(t, n, widthFactor) {
 
 
 
-    // return geodesic;
+    return geodesic;
 
 
 
-
-    //=====if you want balls on the end of the geodesic
-    //slows it down slightly right now
-
-    //get the endpoint of the curve:
-    let start = points[0];
-    let end = points.slice(-1)[0] //endpoint
-
-    let ball = new THREE.SphereBufferGeometry(2. * tubeWidth, 15, 15);
-
-
-    let endBall = ball.clone().translate(end.x, end.y, end.z);
-    let startBall = ball.clone().translate(start.x, start.y, start.z);
-
-    let merged = BufferGeometryUtils.mergeBufferGeometries([geodesic, startBall, endBall]);
-
-    return merged;
+    //
+    //    //=====if you want balls on the end of the geodesic
+    //    //slows it down slightly right now
+    //
+    //    //get the endpoint of the curve:
+    //    let start = points[0];
+    //    let end = points.slice(-1)[0] //endpoint
+    //
+    //    let ball = new THREE.SphereBufferGeometry(2. * tubeWidth, 15, 15);
+    //
+    //
+    //    let endBall = ball.clone().translate(end.x, end.y, end.z);
+    //    let startBall = ball.clone().translate(start.x, start.y, start.z);
+    //
+    //    let merged = BufferGeometryUtils.mergeBufferGeometries([geodesic, startBall, endBall]);
+    //
+    //    return merged;
 }
 
 
@@ -241,41 +237,59 @@ function createGeodesic(t, n, widthFactor) {
 
 
 
-
+function sphCoords(phi, theta) {
+    let x = Math.cos(theta) * Math.sin(phi);
+    let y = Math.sin(theta) * Math.sin(phi);
+    let z = Math.cos(phi);
+    return new THREE.Vector3(x, y, z);
+}
 
 function createGeodesicSpray(t, spraySize) {
+    let phi, theta;
+    let v = new THREE.Vector3(0, 0, 1);
+    let geodesics = [];
 
-    let ray = createGeodesic(t, 0, 1);
+
+    let ray = createGeodesic(v, t, 1);
+
+    geodesics.push(ray);
 
     if (spraySize > 1) {
 
-        let geodesics = [];
+
 
         //add the middle geodesic:
-        geodesics.push(ray);
+        // geodesics.push(ray);
 
 
         let widthFactor;
 
-        for (let i = 1; i < spraySize; i++) {
+        for (let i = 1; i < spraySize; i++) { //latitude
 
             widthFactor = 1 / (1 + i);
+            phi = 3.14 / 4 * (i / spraySize);
 
-            ray = createGeodesic(t, i, widthFactor);
-            geodesics.push(ray);
+            for (let j = 0; j < 5; j++) { //longitude
 
-            ray = createGeodesic(t, -i, widthFactor);
-            geodesics.push(ray);
+                theta = 6.28 * (j / 5);
+                v = sphCoords(phi, theta);
+
+                ray = createGeodesic(v, t, widthFactor);
+                geodesics.push(ray);
+
+            }
         }
 
-
-        let merged = BufferGeometryUtils.mergeBufferGeometries(geodesics);
-
-        return merged;
+        //        let merged = BufferGeometryUtils.mergeBufferGeometries(geodesics);
+        //
+        //        return merged;
     }
 
     //if not then just the one geodesic;
-    return ray;
+    //return ray;
+
+
+    return geodesics;
 
 }
 
@@ -321,7 +335,7 @@ function addTexture(value) {
 
 function createMeshes(cubeTexture) {
     //set the parameters
-    surfaceParamsUpdate();
+    //surfaceParamsUpdate();
 
     //CREATE THE MATERIALS 
 
@@ -364,44 +378,45 @@ function createMeshes(cubeTexture) {
 
 
     //CREATE THE GEOMETRIES
+    //
+    //    //parametric surface geometry
+    //    geometry = createParametricSurface(0);
+    //
+    //    parametricMesh = new THREE.Mesh(geometry, material);
+    //    parametricMesh.position.set(0, 0, 0);
+    //    scene.add(parametricMesh);
+    //
 
-    //parametric surface geometry
-    geometry = createParametricSurface(0);
-
-    parametricMesh = new THREE.Mesh(geometry, material);
-    parametricMesh.position.set(0, 0, 0);
+    geometry = new THREE.SphereBufferGeometry(3, 32, 32);
+    parametricMesh = new THREE.Mesh(geometry, colorMaterial);
     scene.add(parametricMesh);
 
 
 
+    //    let path = new createNilCurve(1, 1, 0);
+    //    geometry = new THREE.TubeBufferGeometry(path, 10 * params.length, params.width, 15, false);
+    //
+    //    parametricMesh = new THREE.Mesh(geometry, texMaterial);
+    //    scene.add(parametricMesh);
+
     //make curve based on u,v coordinates;
     //geometry = createGeodesic(0, 0);
-    geometry = createGeodesicSpray(0, params.spray);
-
-
-    curveMesh = new THREE.Mesh(geometry, curveMaterial);
-    scene.add(curveMesh);
 
 
     //
-    //
-    //    //put a sphere at the start of the geodesic
-    //    geometry = new THREE.SphereGeometry(2 * params.width, 32, 32);
-    //    startBallMesh = new THREE.Mesh(geometry, curveMaterial);
-    //    //get the initial condition from the curves to place it
-    //    let pos = points[0];
-    //    startBallMesh.position.set(pos.x, pos.y, pos.z);
-    //    scene.add(startBallMesh);
+    //    geometry = createGeodesicSpray(0, params.spray);
     //
     //
-    //
-    //    //    //put a sphere at the END of the geodesic
-    //    geometry = new THREE.SphereGeometry(1.25 * params.width, 32, 32);
-    //    endBallMesh = new THREE.Mesh(geometry, curveMaterial);
-    //    //get the initial condition from the curves to place it
-    //    pos = points.slice(-1)[0];
-    //    endBallMesh.position.set(pos.x, pos.y, pos.z);
-    //    scene.add(endBallMesh);
+    //    curveMesh = new THREE.Mesh(geometry, curveMaterial);
+    //    scene.add(curveMesh);
+
+    let geodesics = createGeodesicSpray(0, params.spray);
+    for (let i = 0; i < geodesics.length; i++) {
+
+        curveMesh = new THREE.Mesh(geodesics[i], curveMaterial);
+        scene.add(curveMesh);
+    }
+
 
 }
 
@@ -412,12 +427,13 @@ function createMeshes(cubeTexture) {
 function guiMeshUpdate() { //all the gui updates
 
 
-    surfaceParamsUpdate();
+    //surfaceParamsUpdate();
+
 
     //
     //update the mesh graphics parameters;
-    parametricMesh.material.metalness = params.metal;
-    parametricMesh.material.roughness = params.rough / 4.;
+    //parametricMesh.material.metalness = params.metal;
+    //parametricMesh.material.roughness = params.rough / 4.;
 
     curveMesh.material.color.set(params.color);
     curveMesh.material.metalness = params.metal;
@@ -447,26 +463,35 @@ function meshUpdate(currentTime) {
 
 
     //updates to the meshes in the scene
-    meshRotate(parametricMesh);
+    //meshRotate(parametricMesh);
     meshRotate(curveMesh);
 
-
-    // wiggle the parametric mesh
-    parametricMesh.geometry.dispose();
-    parametricMesh.geometry = createParametricSurface(currentTime);
-
-    //decide based on the boolean drawTex
-    if (drawTex == 1) {
-        parametricMesh.material = texMaterial;
-    } else {
-        parametricMesh.material = colorMaterial;
-    }
+    //
+    //    // wiggle the parametric mesh
+    //    parametricMesh.geometry.dispose();
+    //    parametricMesh.geometry = createParametricSurface(currentTime);
+    //
+    //    //decide based on the boolean drawTex
+    //    if (drawTex == 1) {
+    //        parametricMesh.material = texMaterial;
+    //    } else {
+    //        parametricMesh.material = colorMaterial;
+    //    }
 
 
     // wiggle the curve mesh
-    curveMesh.geometry.dispose();
-    curveMesh.geometry = createGeodesicSpray(currentTime, params.spray);
 
+
+    let geodesics = createGeodesicSpray(0, params.spray);
+    for (let i = 0; i < geodesics.length; i++) {
+
+        curveMesh = new THREE.Mesh(geodesics[i], curveMaterial);
+        scene.add(curveMesh);
+    }
+
+
+    //    //    curveMesh.geometry.dispose();
+    //    curveMesh.geometry = createGeodesicSpray(currentTime, params.spray);
 
 
 }
