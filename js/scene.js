@@ -20,6 +20,12 @@ import {
 } from './mesh.js'
 
 
+import {
+    pmremGenerator
+} from './app.js';
+
+
+
 //variables we will export
 let camera;
 let scene;
@@ -41,7 +47,7 @@ let time = 0.;
 function createCamera() {
     // camera
     camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.set(0, 20, 50);
+    camera.position.set(0, 40, 60);
 
 
 }
@@ -78,7 +84,80 @@ function createLights() {
 //Build the Scene
 //=============================================
 
-function createEnvironment() {
+
+
+
+
+//=====if we have a generated background in a white cube
+
+function createEnvScene() {
+
+    var envScene = new THREE.Scene();
+
+    var geometry = new THREE.BoxBufferGeometry();
+    geometry.deleteAttribute('uv');
+    var roomMaterial = new THREE.MeshStandardMaterial({
+        metalness: 0,
+        side: THREE.BackSide
+    });
+    var room = new THREE.Mesh(geometry, roomMaterial);
+    room.scale.setScalar(10);
+    envScene.add(room);
+
+    var mainLight = new THREE.PointLight(0xffffff, 30, 0, 2);
+    envScene.add(mainLight);
+
+    var lightMaterial = new THREE.MeshLambertMaterial({
+        color: 0x000000,
+        emissive: 0xffffff,
+        emissiveIntensity: 20
+    });
+
+    var light1 = new THREE.Mesh(geometry, lightMaterial);
+    light1.material.color.setHex(0xF52A5E);
+    light1.position.set(-5, 2, 0);
+    light1.scale.set(0.1, 1, 1);
+    envScene.add(light1);
+
+    var light2 = new THREE.Mesh(geometry, lightMaterial.clone());
+    light2.material.color.setHex(0xF5E836);
+    light2.position.set(0, 5, 0);
+    light2.scale.set(1, 0.1, 1);
+    envScene.add(light2);
+
+    var light3 = new THREE.Mesh(geometry, lightMaterial.clone());
+    light3.material.color.setHex(0x35C4F5);
+    light3.position.set(2, 1, 5);
+    light3.scale.set(1, 1, 0.1);
+    envScene.add(light3);
+
+
+
+
+
+    //===== now have generated the scene:
+    //build the cube map fom this:
+
+    var generatedCubeRenderTarget = pmremGenerator.fromScene(envScene, 0.04);
+
+
+    scene.background = generatedCubeRenderTarget.texture;
+
+    return generatedCubeRenderTarget.texture;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+function createEnvFromCube() {
     // envmap
     let genCubeUrls = function (prefix, postfix) {
 
@@ -136,7 +215,13 @@ function createScene() {
     createLights();
 
     //this includes create meshes
-    let cubeTex = createEnvironment();
+
+
+    //choose if the background is loaded from a cube map or generated
+    let cubeTex = createEnvFromCube();
+    //let cubeTex = createEnvScene();
+
+
     createMeshes(cubeTex);
 
 

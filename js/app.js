@@ -37,7 +37,7 @@
         let renderer, controls, container;
         let stats;
 
-
+        let pmremGenerator;
 
 
 
@@ -52,6 +52,10 @@
 
             stats = initStats();
 
+
+            createRenderer();
+
+
             //from scene file.
             createScene();
 
@@ -59,8 +63,6 @@
             createControls();
             createGUI();
 
-
-            createRenderer();
 
 
             // listener
@@ -118,6 +120,13 @@
 
             // add the output of the renderer to the html element
             container.appendChild(renderer.domElement);
+
+
+
+            //make the pmrem generator if we need it
+            pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileCubemapShader();
+
 
         }
 
@@ -179,3 +188,10 @@
 
         init();
         animate();
+
+
+
+
+        export {
+            pmremGenerator
+        };

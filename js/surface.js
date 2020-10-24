@@ -172,6 +172,39 @@ function acceleration(state, t) {
 
 
 
+
+
+
+
+
+//
+//
+//
+////MAKING A PARAMETRIC SURFACE FROM USER INPUT
+////=============================================
+//
+//const parser = math.parser();
+//
+//
+//
+//// convert to formulas
+//
+//let xCoord = parser.evaluate('xCoord(u,v,t,a,b,c)='.concat(params.xCoordText));
+//
+//let yCoord = parser.evaluate('yCoord(u,v,t,a,b,c)='.concat(params.yCoordText));
+//
+//let zCoord = parser.evaluate('zCoord(u,v,t,a,b,c)='.concat(params.zCoordText));
+//
+//
+
+
+
+
+
+
+
+
+
 //=============================================
 //Stuff for all Surfaces
 //=============================================
