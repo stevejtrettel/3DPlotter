@@ -17,13 +17,12 @@ import {
 
 
 import {
-    A,
-    B,
     acceleration,
     surfaceParamsUpdate,
     surface,
     rescaleU,
-    rescaleV
+    rescaleV,
+    equationUpdate
 } from './surface.js';
 
 let meshes;
@@ -66,7 +65,7 @@ function createParametricSurface(t) {
             let U = rescaleU(u);
             let V = rescaleV(v);
 
-            let P = surface(U, V);
+            let P = surface(U, V, t);
 
 
             dest.set(P.x, P.y, P.z).multiplyScalar(scalingFactor);
@@ -194,7 +193,7 @@ function createGeodesic(t, n, widthFactor) {
         ui = (state[0]).x;
         vi = (state[0]).y;
 
-        let Pi = surface(ui, vi);
+        let Pi = surface(ui, vi, t);
 
         //append points to the list
         points.push(Pi.multiplyScalar(scalingFactor));
@@ -322,7 +321,7 @@ function addTexture(value) {
 function createMeshes(cubeTexture) {
     //set the parameters
     surfaceParamsUpdate();
-
+    equationUpdate();
     //CREATE THE MATERIALS 
 
 
@@ -412,7 +411,7 @@ function createMeshes(cubeTexture) {
 function guiMeshUpdate() { //all the gui updates
 
 
-    surfaceParamsUpdate();
+    // surfaceParamsUpdate();
 
     //
     //update the mesh graphics parameters;
@@ -445,6 +444,9 @@ function meshRotate(theMesh) {
 
 function meshUpdate(currentTime) {
 
+
+    //update the equations coming from the GUI
+    equationUpdate();
 
     //updates to the meshes in the scene
     meshRotate(parametricMesh);

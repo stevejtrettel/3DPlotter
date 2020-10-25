@@ -6,12 +6,12 @@ let gui;
 
 
 
-//
-//let xCoordText = "u";
-//
-//let yCoordText = "v";
-//
-//let zCoordText = "2*sin(u)*sin(v)+a*sin(u*v)";
+
+let xCoordText = "u";
+
+let yCoordText = "v";
+
+let zCoordText = "(1+a)*sin(u)*sin(v)+0.3*sin(t)*sin(u*v)";
 
 
 // define the variables that live in the gui
@@ -27,9 +27,9 @@ let params = {
     wiggle: 0.2,
     length: 10,
     step: 0.3,
-    //    xCoordText: xCoordText,
-    //    yCoordText: yCoordText,
-    //    zCoordText: zCoordText,
+    xCoordText: xCoordText,
+    yCoordText: yCoordText,
+    zCoordText: zCoordText,
     drawTex: 0,
     color: 0x1e43,
     intensity: 0.5,
@@ -59,12 +59,16 @@ function createGUI() {
         0, 1, 0.01);
     domain.add(params, 'a', 0, 1, 0.01).name('A');
     domain.add(params, 'b', 0, 1, 0.01).name('B');
-
-
+    domain.add(params, 'c', 0, 1, 0.01).name('C');
 
     domain.close();
 
-
+    gui.add(params, 'xCoordText').name('X'
+        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+    gui.add(params, 'yCoordText').name('Y'
+        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+    gui.add(params, 'zCoordText').name('Z'
+        .concat('a,b,c,t'.sub().concat('(u,v)=')));
 
     let parameters = gui.addFolder('Geodesic');
 

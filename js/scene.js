@@ -218,8 +218,8 @@ function createScene() {
 
 
     //choose if the background is loaded from a cube map or generated
-    let cubeTex = createEnvFromCube();
-    //let cubeTex = createEnvScene();
+    //let cubeTex = createEnvFromCube();
+    let cubeTex = createEnvScene();
 
 
     createMeshes(cubeTex);
