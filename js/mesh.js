@@ -16,15 +16,12 @@ import {
 } from './scene.js';
 
 
-//import {
-//    A,
-//    B,
-//    acceleration,
-//    surfaceParamsUpdate,
-//    surface,
-//    rescaleU,
-//    rescaleV
-//} from './surface.js';
+import {
+    curveSpray,
+    sphCoords,
+    nilGeodesic,
+    nilFlow
+} from './geometry.js';
 
 let meshes;
 
@@ -41,160 +38,36 @@ let colorMaterial;
 let curveMaterial;
 let parametricMesh;
 
-let points;
+
 let curve;
 let curveMesh;
 
+//
+//let startBall, endBall;
+//let startBallMesh, endBallMesh;
+//
 
-let startBall, endBall;
-let startBallMesh, endBallMesh;
-
-let scalingFactor = 5;
 
 let velList;
 let curves;
+let geodesicGroup;
 
 
+let curve0, curve1, curve2, curve3, curve4, curve5;
+let curve6, curve7, curve8, curve9, curve10;
 
 
-//gives the initial condition as a function of time
-//special for geodesics at the origin
-//n is the number of curve we are on
-function initialCondition(t, n) {
+function initialCondition(t) {
 
     let wiggle = params.wiggle;
 
-    let phi = 0.2;
-    let theta = wiggle;
+    let phi = params.angle + 0.4 * wiggle * Math.cos(2 * t);
+    let theta = params.theta + wiggle * Math.sin(t);
 
-    return [phi, theta];
+    return sphCoords(phi, theta);
 }
 
 
-
-
-
-function nilFlow(v, s) {
-
-    //v is a unit tangent vector
-
-
-    //this is the geodesic from the origin
-    let a = Math.sqrt(v.x * v.x + v.y * v.y);
-    let c = v.z;
-    let theta = Math.atan2(v.y, v.x);
-
-    let x, y, z;
-
-    if (c == 0) {
-        x = t * Math.cos(theta);
-        y = t * Math.sin(theta);
-        z = 0;
-    } else { //geodesic flow
-        x = 2. * a / c * Math.sin(c * s / 2) * Math.cos(c * s / 2 + theta);
-        y = 2. * a / c * Math.sin(c * s / 2) * Math.sin(c * s / 2 + theta);
-        z = c * s + a * a / (2 * c * c) * (c * s - Math.sin(c * s));
-    }
-    return new THREE.Vector3(x, y, -z);
-}
-
-
-
-
-
-function createGeodesic(v, t, widthFactor) {
-
-    //    let phi = Math.acos(v.z);
-    //    let theta = Math.atan2(v.y, v.x);
-
-
-    points = [];
-
-
-    let tubeWidth = widthFactor * params.width;
-    let samples = 2. * params.length;
-
-
-    //initial tangent vector to geodesic;
-    // let state = initialCondition(t, n);
-
-
-    //only one step for every unit length
-    let numSteps = params.length;
-
-    for (let i = 0; i < numSteps; i++) {
-
-        let P = nilGeodesicPoint(v, i * 1);
-
-        //append points to the list
-        points.push(P.multiplyScalar(scalingFactor));
-
-    }
-
-
-    //make a curve out of all the points
-    curve = new THREE.CatmullRomCurve3(points);
-
-    //set the number of interpolation points here!
-    let geodesic = new THREE.TubeBufferGeometry(curve, 10 * params.length, tubeWidth, 15, false);
-
-
-
-    return geodesic;
-
-
-
-    //
-    //    //=====if you want balls on the end of the geodesic
-    //    //slows it down slightly right now
-    //
-    //    //get the endpoint of the curve:
-    //    let start = points[0];
-    //    let end = points.slice(-1)[0] //endpoint
-    //
-    //    let ball = new THREE.SphereBufferGeometry(2. * tubeWidth, 15, 15);
-    //
-    //
-    //    let endBall = ball.clone().translate(end.x, end.y, end.z);
-    //    let startBall = ball.clone().translate(start.x, start.y, start.z);
-    //
-    //    let merged = BufferGeometryUtils.mergeBufferGeometries([geodesic, startBall, endBall]);
-    //
-    //    return merged;
-}
-
-
-
-
-//take in a vector, spit out the curve 
-function nilGeodesic(v) {
-
-    points = [];
-
-
-    let tubeWidth = params.width;
-    //samples per unit length
-    let samples = 2.;
-
-
-    for (let i = 0; i < samples * params.length; i++) {
-
-        let P = nilFlow(v, i / samples);
-
-        //append points to the list
-        points.push(P.multiplyScalar(scalingFactor));
-    }
-
-    //make a curve out of all the points
-    curve = new THREE.CatmullRomCurve3(points);
-
-    return curve
-
-}
-
-
-
-//====end of geodesic stuff
 
 function velSpray(v, rings, spokes) {
     //make a list of initial conditions
@@ -227,34 +100,39 @@ function velSpray(v, rings, spokes) {
 
 
 
-function curveSpray(velList) {
+function singleRing(v, t) {
 
-    let curveList = [];
-    let geodesic;
+    let velList = [];
 
-    for (let i = 0; i < velList.length; i++) {
+    //add the central vector
+    velList.push(v);
 
-        geodesic = nilGeodesic(velList[i]);
-        curveList.push(geodesic);
 
+    let u, w;
+    let U, W;
+
+    //find a perpendicular vector to v
+    const n = new THREE.Vector3(0, -v.z, v.y).normalize();
+
+
+    //first ring around the central vector
+    w = v.clone().applyAxisAngle(n, params.spray);
+    W = v.clone().applyAxisAngle(n, 2 * params.spray);
+
+    for (let j = 0; j < 5; j++) {
+        //rotate successively around v;
+
+        u = w.clone().applyAxisAngle(v, t + 6.28 * (j / 5));
+        U = W.clone().applyAxisAngle(v, t + 6.28 * (j / 5));
+
+        velList.push(u);
+        velList.push(U);
     }
 
-    return curveList;
+
+    return velList;
 
 }
-
-
-
-function sphCoords(phi, theta) {
-    let x = Math.cos(theta) * Math.sin(phi);
-    let y = Math.sin(theta) * Math.sin(phi);
-    let z = Math.cos(phi);
-    return new THREE.Vector3(x, y, z);
-}
-
-
-
-
 
 
 
@@ -320,63 +198,95 @@ function createMeshes(cubeTexture) {
     });
 
 
-    texMaterial = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        map: texture,
-        metalness: params.metal,
-        roughness: params.rough,
-        envMap: cubeTexture,
-        envMapIntensity: 1.,
-        side: THREE.DoubleSide,
-    });
+    //    texMaterial = new THREE.MeshStandardMaterial({
+    //        color: 0xffffff,
+    //        map: texture,
+    //        metalness: params.metal,
+    //        roughness: params.rough,
+    //        envMap: cubeTexture,
+    //        envMapIntensity: 1.,
+    //        side: THREE.DoubleSide,
+    //    });
+    //
+    //    if (drawTex == 1) {
+    //        material = texMaterial;
+    //    } else {
+    //        material = colorMaterial;
+    //    }
 
-    if (drawTex == 1) {
-        material = texMaterial;
-    } else {
-        material = colorMaterial;
-    }
 
-
-
+    //central sphere
     geometry = new THREE.SphereBufferGeometry(3, 32, 32);
     parametricMesh = new THREE.Mesh(geometry, colorMaterial);
     scene.add(parametricMesh);
 
 
 
-    //    let path = new createNilCurve(1, 1, 0);
-    //    geometry = new THREE.TubeBufferGeometry(path, 10 * params.length, params.width, 15, false);
+    //    //geodesic spray
+    //    velList = velSpray(new THREE.Vector3(0, 0, 1), 10, 20);
+    //    curves = curveSpray(velList);
+    //    geodesicGroup = new THREE.Group();
     //
-    //    parametricMesh = new THREE.Mesh(geometry, texMaterial);
-    //    scene.add(parametricMesh);
+    //    for (let i = 0; i < curves.length; i++) {
+    //        geometry = new THREE.TubeBufferGeometry(curves[i], 5 * params.length, 0.2, 15, false);
+    //        curveMesh = new THREE.Mesh(geometry, curveMaterial);
+    //        geodesicGroup.add(curveMesh);
+    //    }
+    //
+    //    scene.add(geodesicGroup);
+    //
+    //
 
-    //make curve based on u,v coordinates;
-    //geometry = createGeodesic(0, 0);
 
 
-    //
-    //    geometry = createGeodesicSpray(0, params.spray);
-    //
-    //
-    //    curveMesh = new THREE.Mesh(geometry, curveMaterial);
-    //    scene.add(curveMesh);
-    velList = velSpray(new THREE.Vector3(0, 0, 1), 10, 5);
+
+    //instead of a giant spray, just a single ring:
+    velList = singleRing(new THREE.Vector3(0, 0, 1), 0);
     curves = curveSpray(velList);
 
-    for (let i = 0; i < curves.length; i++) {
-        geometry = new THREE.TubeBufferGeometry(curves[i], 5 * params.length, 0.2, 15, false);
-        curveMesh = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curveMesh);
-    }
+    geometry = new THREE.TubeBufferGeometry(curves[0], 5 * params.length, 0.2, 15, false);
+    curve0 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve0);
 
-    //    //    
-    //    let geodesics = createGeodesicSpray(0, params.spray);
-    //    for (let i = 0; i < geodesics.length; i++) {
-    //
-    //        curveMesh = new THREE.Mesh(geodesics[i], curveMaterial);
-    //        scene.add(curveMesh);
-    //    }
+    geometry = new THREE.TubeBufferGeometry(curves[1], 5 * params.length, 0.2, 15, false);
+    curve1 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve1);
 
+    geometry = new THREE.TubeBufferGeometry(curves[2], 5 * params.length, 0.2, 15, false);
+    curve2 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve2);
+
+    geometry = new THREE.TubeBufferGeometry(curves[3], 5 * params.length, 0.2, 15, false);
+    curve3 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve3);
+
+    geometry = new THREE.TubeBufferGeometry(curves[4], 5 * params.length, 0.2, 15, false);
+    curve4 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve4);
+
+    geometry = new THREE.TubeBufferGeometry(curves[5], 5 * params.length, 0.2, 15, false);
+    curve5 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve5);
+
+    geometry = new THREE.TubeBufferGeometry(curves[6], 5 * params.length, 0.2, 15, false);
+    curve6 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve6);
+
+    geometry = new THREE.TubeBufferGeometry(curves[7], 5 * params.length, 0.2, 15, false);
+    curve7 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve7);
+
+    geometry = new THREE.TubeBufferGeometry(curves[8], 5 * params.length, 0.2, 15, false);
+    curve8 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve8);
+
+    geometry = new THREE.TubeBufferGeometry(curves[9], 5 * params.length, 0.2, 15, false);
+    curve9 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve9);
+
+    geometry = new THREE.TubeBufferGeometry(curves[10], 5 * params.length, 0.2, 15, false);
+    curve10 = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curve10);
 
 }
 
@@ -385,21 +295,6 @@ function createMeshes(cubeTexture) {
 
 
 function guiMeshUpdate() { //all the gui updates
-
-
-    //surfaceParamsUpdate();
-
-
-    //
-    //update the mesh graphics parameters;
-    //parametricMesh.material.metalness = params.metal;
-    //parametricMesh.material.roughness = params.rough / 4.;
-
-    //    curveMesh.material.color.set(params.color);
-    //    curveMesh.material.metalness = params.metal;
-    //    curveMesh.material.roughness = params.rough / 4.;
-    //
-    //    drawTex = params.drawTex;
 
 
 }
@@ -421,47 +316,51 @@ function meshRotate(theMesh) {
 
 function meshUpdate(currentTime) {
 
-
-    //updates to the meshes in the scene
-    //meshRotate(parametricMesh);
-    // meshRotate(curveMesh);
-
     //
-    //    // wiggle the parametric mesh
-    //    parametricMesh.geometry.dispose();
-    //    parametricMesh.geometry = createParametricSurface(currentTime);
-    //
-    //    //decide based on the boolean drawTex
-    //    if (drawTex == 1) {
-    //        parametricMesh.material = texMaterial;
-    //    } else {
-    //        parametricMesh.material = colorMaterial;
-    //    }
-
-
-    // wiggle the curve mesh
-    //
-    //        velList = velSpray(new THREE.Vector3(0, 0, 1), 5, 3);
+    //    velList = velSpray(new THREE.Vector3(Math.sin(currentTime), 0, Math.cos(currentTime)), 3, 4);
     //    curves = curveSpray(velList);
     //
     //    for (let i = 0; i < curves.length; i++) {
     //        geometry = new THREE.TubeBufferGeometry(curves[i], 5 * params.length, 0.2, 15, false);
     //        curveMesh = new THREE.Mesh(geometry, curveMaterial);
-    //        scene.add(curveMesh);
-    //    }
-    //    
-
-    //
-    //    let geodesics = createGeodesicSpray(0, params.spray);
-    //    for (let i = 0; i < geodesics.length; i++) {
-    //
-    //        curveMesh = new THREE.Mesh(geodesics[i], curveMaterial);
-    //        scene.add(curveMesh);
+    //        geodesicGroup.add(curveMesh);
     //    }
 
 
-    //    //    curveMesh.geometry.dispose();
-    //    curveMesh.geometry = createGeodesicSpray(currentTime, params.spray);
+
+
+
+
+
+    velList = singleRing(initialCondition(currentTime), currentTime);
+    curves = curveSpray(velList);
+
+    curve0.geometry.dispose();
+    curve1.geometry.dispose();
+    curve2.geometry.dispose();
+    curve3.geometry.dispose();
+    curve4.geometry.dispose();
+    curve5.geometry.dispose();
+    curve6.geometry.dispose();
+    curve7.geometry.dispose();
+    curve8.geometry.dispose();
+    curve9.geometry.dispose();
+    curve10.geometry.dispose();
+
+
+    curve0.geometry = new THREE.TubeBufferGeometry(curves[0], 5 * params.length, 0.2, 15, false);
+
+    curve1.geometry = new THREE.TubeBufferGeometry(curves[1], 5 * params.length, 0.2, 15, false);
+    curve2.geometry = new THREE.TubeBufferGeometry(curves[2], 5 * params.length, 0.2, 15, false);
+    curve3.geometry = new THREE.TubeBufferGeometry(curves[3], 5 * params.length, 0.2, 15, false);
+    curve4.geometry = new THREE.TubeBufferGeometry(curves[4], 5 * params.length, 0.2, 15, false);
+    curve5.geometry = new THREE.TubeBufferGeometry(curves[5], 5 * params.length, 0.2, 15, false);
+
+    curve6.geometry = new THREE.TubeBufferGeometry(curves[6], 5 * params.length, 0.2, 15, false);
+    curve7.geometry = new THREE.TubeBufferGeometry(curves[7], 5 * params.length, 0.2, 15, false);
+    curve8.geometry = new THREE.TubeBufferGeometry(curves[8], 5 * params.length, 0.2, 15, false);
+    curve9.geometry = new THREE.TubeBufferGeometry(curves[9], 5 * params.length, 0.2, 15, false);
+    curve10.geometry = new THREE.TubeBufferGeometry(curves[10], 5 * params.length, 0.2, 15, false);
 
 
 }

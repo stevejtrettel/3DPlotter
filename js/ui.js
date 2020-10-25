@@ -22,10 +22,11 @@ let params = {
     b: 0.5,
     c: 0.2,
     p: 0.39,
-    angle: 3.14,
-    spray: 1,
+    angle: 0,
+    theta: 0,
+    spray: 0.2,
     wiggle: 0.2,
-    length: 20,
+    length: 35,
     step: 0.3,
     //    xCoordText: xCoordText,
     //    yCoordText: yCoordText,
@@ -50,31 +51,31 @@ function createGUI() {
 
     gui.domElement.style.userSelect = 'none';
 
+    //
+    //    let domain = gui.addFolder('Surface');
+    //
+    //    domain.add(params, 'uPercent', 0, 1, 0.01);
+    //
+    //    domain.add(params, 'vPercent',
+    //        0, 1, 0.01);
+    //    domain.add(params, 'a', 0, 1, 0.01).name('A');
+    //    domain.add(params, 'b', 0, 1, 0.01).name('B');
+    //
+    //
+    //
+    //    domain.close();
+    //
 
-    let domain = gui.addFolder('Surface');
 
-    domain.add(params, 'uPercent', 0, 1, 0.01);
+    //    let parameters = gui.addFolder('Geodesic');
 
-    domain.add(params, 'vPercent',
-        0, 1, 0.01);
-    domain.add(params, 'a', 0, 1, 0.01).name('A');
-    domain.add(params, 'b', 0, 1, 0.01).name('B');
+    gui.add(params, 'angle', 0, 6.28, 0.01).name('Phi');
+    gui.add(params, 'theta', 0, 6.28, 0.01).name('Theta');
+    gui.add(params, 'spray', 0, 1, 0.01).name('Spread');
 
-
-
-    domain.close();
-
-
-
-    let parameters = gui.addFolder('Geodesic');
-
-    parameters.add(params, 'p', 0, 1, 0.01).name('Position');
-    parameters.add(params, 'angle', 0, 6.28, 0.01).name('Angle');
-    parameters.add(params, 'spray', 1, 10, 1).name('Spray');
-
-    parameters.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');
-    parameters.add(params, 'length', 0.1, 100, 0.1).name('Length');
-    parameters.add(params, 'step', 0.01, 0.5, 0.01).name('StepSize');
+    gui.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');
+    gui.add(params, 'length', 0.1, 50, 0.1).name('Length');
+    // parameters.add(params, 'step', 0.01, 0.5, 0.01).name('StepSize');
 
 
     let graphics = gui.addFolder('Graphics');
