@@ -34,8 +34,8 @@ function createParametricSurface(t) {
         (u, v, dest) => {
 
             //rescale based on the size of the parameterization domain
-            let U = rescaleU(u);
-            let V = rescaleV(v);
+            let U = rescaleU(x);
+            let V = rescaleV(y);
 
             let P = surface(U, V);
 
@@ -55,5 +55,11 @@ function createParametricSurface(t) {
 
 
 
-//Making a Tube around the Solution to an DiffEq
+//Making a Tube around a curve
 //=============================================
+
+
+
+
+
+

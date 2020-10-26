@@ -7,11 +7,11 @@ let gui;
 
 
 
-let xCoordText = "u";
+let xCoordText = "2sin(s)";
 
-let yCoordText = "v";
+let yCoordText = "cos(s)+0.3*sin(3s)";
 
-let zCoordText = "(1+a)*sin(u)*sin(v)+0.3*sin(t)*sin(u*v)";
+let zCoordText = "(1+a)*sin(x)*sin(y)+0.5*sin(t)*sin(x*y)+2";
 
 
 // define the variables that live in the gui
@@ -36,6 +36,7 @@ let params = {
     intensity: 0.5,
     metal: 0.,
     rough: 0.,
+    opacity: 0.5,
     res: 75,
     width: 0.4,
     zRotation: 0.,
@@ -64,12 +65,12 @@ function createGUI() {
 
     domain.close();
 
-//    gui.add(params, 'xCoordText').name('X'
-//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
-//    gui.add(params, 'yCoordText').name('Y'
-//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
-//    gui.add(params, 'zCoordText').name('Z'
-//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+    gui.add(params, 'xCoordText').name('X'
+        .concat('a,b,c,t'.sub().concat('(s)=')));
+    gui.add(params, 'yCoordText').name('Y'
+        .concat('a,b,c,t'.sub().concat('(s)=')));
+    gui.add(params, 'zCoordText').name('F'
+        .concat('a,b,c,t'.sub().concat('(x,y)=')));
 
     let parameters = gui.addFolder('Geodesic');
 
@@ -99,6 +100,7 @@ function createGUI() {
     graphics.add(params, 'intensity', 0., 1., 0.05).name('Brightness');
     graphics.add(params, 'metal', 0., 1., 0.05).name('Metalicity');
     graphics.add(params, 'rough', 0., 1., 0.05).name('Roughness');
+    graphics.add(params, 'opacity', 0., 1., 0.01).name('Opacity');
     graphics.add(params, 'res', 10, 150, 5);
     graphics.add(params, 'width', 0.01, 1, 0.01).name('TubeWidth');
     graphics.add(params, 'zRotation', 0, 1, 0.05).name('Rotate');
