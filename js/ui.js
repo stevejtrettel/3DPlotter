@@ -32,6 +32,7 @@ let params = {
     zCoordText: zCoordText,
     drawTex: 0,
     color: 0x1e43,
+    curveColor: 0x0,
     intensity: 0.5,
     metal: 0.,
     rough: 0.,
@@ -63,12 +64,12 @@ function createGUI() {
 
     domain.close();
 
-    gui.add(params, 'xCoordText').name('X'
-        .concat('a,b,c,t'.sub().concat('(u,v)=')));
-    gui.add(params, 'yCoordText').name('Y'
-        .concat('a,b,c,t'.sub().concat('(u,v)=')));
-    gui.add(params, 'zCoordText').name('Z'
-        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+//    gui.add(params, 'xCoordText').name('X'
+//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+//    gui.add(params, 'yCoordText').name('Y'
+//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+//    gui.add(params, 'zCoordText').name('Z'
+//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
 
     let parameters = gui.addFolder('Geodesic');
 
@@ -90,7 +91,10 @@ function createGUI() {
     }).name('Draw Coordinate Grid');
 
     graphics.addColor(params, 'color')
-        .name('Color');
+        .name('Surface Color');
+
+    graphics.addColor(params, 'curveColor')
+        .name('Geodesic Color');
 
     graphics.add(params, 'intensity', 0., 1., 0.05).name('Brightness');
     graphics.add(params, 'metal', 0., 1., 0.05).name('Metalicity');

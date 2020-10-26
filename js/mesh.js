@@ -417,8 +417,9 @@ function guiMeshUpdate() { //all the gui updates
     //update the mesh graphics parameters;
     parametricMesh.material.metalness = params.metal;
     parametricMesh.material.roughness = params.rough / 4.;
+    parametricMesh.material.color.set(params.color);
 
-    curveMesh.material.color.set(params.color);
+    curveMesh.material.color.set(params.curveColor);
     curveMesh.material.metalness = params.metal;
     curveMesh.material.roughness = params.rough / 4.;
 
