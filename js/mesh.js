@@ -411,7 +411,7 @@ function createMeshes(cubeTexture) {
 function guiMeshUpdate() { //all the gui updates
 
 
-    // surfaceParamsUpdate();
+    surfaceParamsUpdate();
 
     //
     //update the mesh graphics parameters;
