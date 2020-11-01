@@ -6,7 +6,10 @@ import {
     params
 } from './ui.js';
 
-
+import {
+    state,
+    dState
+} from './geometry.js';
 
 let A, B;
 
@@ -101,10 +104,10 @@ function Z(u, v) {
 function acceleration(state, t) {
 
     //unpack the position and velocity coordinates
-    let u = state[0].x;
-    let v = state[0].y;
-    let uP = state[1].x;
-    let vP = state[1].y;
+    let u = state.pos.x;
+    let v = state.pos.y;
+    let uP = state.vel.x;
+    let vP = state.vel.y;
 
     let num = 4 * A * A * B * B * (uP * uP * (2 * B * u * u - 1) + vP * vP * (2 * B * v * v - 1) + 4 * B * u * v * uP * vP);
     let denom = 4 * A * A * B * B * (u * u + v * v) + Math.exp(2 * B * (u * u + v * v));

@@ -23,6 +23,8 @@ import {
 
 
 import {
+    state,
+    dState,
     createParametricSurface,
     createGeodesicSpray
 } from './geometry.js';
@@ -87,7 +89,7 @@ function initialCondition(t, n) {
     //assemble the velocity vector
     let vel = new THREE.Vector2(Math.cos(theta), Math.sin(theta));
 
-    return [pos, vel];
+    return new state(pos, vel);
 }
 
 
