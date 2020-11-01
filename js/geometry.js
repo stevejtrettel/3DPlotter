@@ -184,7 +184,7 @@ function rk4(state) {
     k2.rescale(2);
     k3.rescale(2);
 
-    let adjustment = k1;
+    let adjustment = k1.clone();
     adjustment.add(k2);
     adjustment.add(k3);
     adjustment.add(k4);
