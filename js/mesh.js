@@ -23,8 +23,11 @@ import {
 
 
 import {
+    scalingFactor,
     state,
     dState,
+    toBasis,
+    //fromBasis,
     createParametricSurface,
     createGeodesicSpray
 } from './geometry.js';
@@ -68,7 +71,7 @@ function initialCondition(s, n) {
     //==== INITIAL POSITION
 
     //start from center
-    let pos = new THREE.Vector2(3.14, pv + 3.14 / 8.);
+    let pos = new THREE.Vector4(3.14, 3.14 / 4. + params.p, 0., 0.);
 
     //start from a corner
     //let pos = new THREE.Vector2(uMin + uRng / 8, vMin + uRng / 8);
@@ -87,9 +90,15 @@ function initialCondition(s, n) {
     let theta = params.angle + n * spacing + Math.cos(s) * wiggle;
 
     //assemble the velocity vector
-    let vel = new THREE.Vector2(Math.cos(theta), Math.sin(theta));
+    let vel = new THREE.Vector4(Math.cos(theta), Math.sin(theta), 0., 1.);
 
-    return new state(pos, vel);
+    //length 1 in space and time direction:this is lightlike in the local coordinates: need to convert
+
+    let basisState = new state(pos, vel);
+
+    let coordState = toBasis(basisState);
+
+    return coordState;
 }
 
 
@@ -180,7 +189,7 @@ function createMeshes(cubeTexture) {
     //CREATE THE GEOMETRIES
 
     //parametric surface geometry
-    geometry = createParametricSurface(0);
+    geometry = new THREE.SphereBufferGeometry(scalingFactor, 32, 32);
 
     parametricMesh = new THREE.Mesh(geometry, material);
     parametricMesh.position.set(0, 0, 0);
@@ -259,10 +268,9 @@ function meshUpdate(currentTime) {
 
 
     // wiggle the parametric mesh
-    parametricMesh.geometry.dispose();
-    parametricMesh.geometry = createParametricSurface(currentTime);
-
-
+    //    parametricMesh.geometry.dispose();
+    //    parametricMesh.geometry = createParametricSurface(currentTime);
+    //
     // wiggle the curve mesh
     curveMesh.geometry.dispose();
     curveMesh.geometry = createGeodesicSpray(currentTime, params.spray);

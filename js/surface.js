@@ -49,10 +49,10 @@ let uMin, uMax, uRng, vMin, vMax, vRng;
 //function acceleration(state, t) {
 //
 //    //unpack the position and velocity coordinates
-//    let u = state[0].x;
-//    let v = state[0].y;
-//    let uP = state[1].x;
-//    let vP = state[1].y;
+//    let u = state.pos.x;
+//    let v = state.pos.y;
+//    let uP = state.vel.x;
+//    let vP = state.vel.y;
 //
 //    //For Torus
 //    let uAcc = 2 * uP * vP * Math.sin(v) / (A + Math.cos(v));

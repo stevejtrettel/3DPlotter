@@ -127,35 +127,51 @@ function nudge(st, dSt, step) {
 
 
 
-let pos = new THREE.Vector2();
-let vel = new THREE.Vector2();
-let acc = new THREE.Vector2();
+let pos = new THREE.Vector4();
+let vel = new THREE.Vector4();
+let acc = new THREE.Vector4();
 //do one step of numerical integration of the geodesic equations
 //state is a pair [pos,vel]
 
 
-//all the christoffel symbol trash goes in here!
-//function acceleration(state) {
-//
-//
-//    return new THREE.Vector2(0, 0);
-//}
-//
-
 
 function acceleration(state) {
+    let Rs = 1.;
 
     //unpack the position and velocity coordinates
-    let u = state.pos.x;
-    let v = state.pos.y;
-    let uP = state.vel.x;
-    let vP = state.vel.y;
+    let x = state.pos.x;
+    let y = state.pos.y;
+    let z = state.pos.z;
+    let t = state.pos.w;
 
-    let num = 4 * (uP * uP * (2 * u * u - 1) + vP * vP * (2 * v * v - 1) + 4 * u * v * uP * vP);
-    let denom = 4 * (u * u + v * v) + Math.exp(2 * (u * u + v * v));
-    let K = num / denom;
-    let acc = new THREE.Vector2(u, v);
-    acc.multiplyScalar(K);
+    let xP = state.vel.x;
+    let yP = state.vel.y;
+    let zP = state.vel.z;
+    let tP = state.vel.w;
+
+
+    let rho2 = x * x + y * y + z * z;
+    let rho = Math.sqrt(rho2);
+
+    //the time derivative
+    let tAcc = 4 * Rs * tP * (x * xP + y * yP * z * zP) /
+        (rho * (rho2 - Rs * Rs));
+
+    //the space derivatives
+    let C1 = 2 * Rs / (Rs + rho);
+    let C2 = (Rs - rho) / (Math.pow(Rs + rho, 6)) * rho2 * rho * tP * tP;
+    let C3 = 1 / rho2;
+
+    let xa = xP * xP + 2 * xP * (yP * yP + zP * zP) - x * (yP * yP + zP * zP);
+    let xAcc = C1 * (C2 * x + C3 * xa);
+
+    let ya = yP * yP + 2 * yP * (xP * xP + zP * zP) - y * (xP * xP + zP * zP);
+    let yAcc = C1 * (C2 * y + C3 * ya);
+
+    let za = zP * zP + 2 * zP * (xP * xP + yP * yP) - z * (xP * xP + yP * yP);
+    let zAcc = C1 * (C2 * z + C3 * za);
+
+    let acc = new THREE.Vector4(xAcc, yAcc, zAcc, tAcc);
 
     return acc;
 }
@@ -230,7 +246,7 @@ function integrateGeodesic(st, width) {
 
     //the initial condition is dSt
     let ui, vi;
-    let P;
+    let P, p;
 
     let numSteps = params.length / params.step;
 
@@ -239,10 +255,13 @@ function integrateGeodesic(st, width) {
         ui = (st.pos).x;
         vi = (st.pos).y;
 
-        P = surface(ui, vi, 0);
+        //project away the time coordinate, just draw space:
 
+        P = st.pos;
+        p = new THREE.Vector3(P.x, P.y, P.z);
+        // console.log(p);
         //append points to the list
-        samplePts.push(P.multiplyScalar(scalingFactor));
+        samplePts.push(p.multiplyScalar(scalingFactor));
 
         //move forward one step along the geodesic in UV coordinates
         st = rk4(st);
@@ -256,7 +275,6 @@ function integrateGeodesic(st, width) {
 
 
 function createGeodesic(t, n, widthFactor) {
-    points = [];
 
 
     let tubeWidth = widthFactor * params.width;
@@ -265,6 +283,7 @@ function createGeodesic(t, n, widthFactor) {
 
     //initial tangent vector to geodesic;
     let st = initialCondition(t, n);
+    console.log(st);
     //let st = new state(new THREE.Vector2(0.5, 0.5), new THREE.Vector2(1, 0));
 
     //this saves to 'points' the tube
@@ -334,14 +353,77 @@ function createGeodesicSpray(t, spraySize) {
 }
 
 
+//
+//
+//function basis(pos) {
+//    let Rs = 1;
+//
+//    let x = pos.x;
+//    let y = pos.y;
+//    let z = pos.z;
+//    let t = pos.w;
+//
+//    let rho = Math.sqrt(x * x + y * y * z * z);
+//
+//    let et = new THREE.Vector4(0, 0, 0, (rho + Rs) / (rho - Rs));
+//
+//    let C = Math.pow((1 + Rs / rho), -2);
+//
+//    let ex = new THREE.Vector4(1, 0, 0, 0).multiplyScalar(C);
+//    let ey = new THREE.Vector4(0, 1, 0, 0).multiplyScalar(C);
+//    let ez = new THREE.Vector4(0, 0, 1, 0).multiplyScalar(C);
+//
+//    return [ex, ey, ez];
+//
+//}
 
+function toBasis(st) {
+    let Rs = 1;
 
+    let x = st.pos.x;
+    let y = st.pos.y;
+    let z = st.pos.z;
+    let t = st.pos.w;
+
+    let rho = Math.sqrt(x * x + y * y * z * z);
+
+    let tFactor = (rho + Rs) / (rho - Rs);
+    let sFactor = Math.pow((1 + Rs / rho), -2);
+
+    let basisVel = new THREE.Vector4(sFactor * st.vel.x, sFactor * st.vel.y, sFactor * st.vel.z, tFactor * st.vel.w);
+
+    return new state(st.pos, basisVel);
+
+}
+
+//function fromBasis(st) {
+//    let Rs = 1;
+//
+//    let x = st.pos.x;
+//    let y = st.pos.y;
+//    let z = st.pos.z;
+//    let t = st.pos.w;
+//
+//    let rho = Math.sqrt(x * x + y * y * z * z);
+//
+//    let tFactor = (rho + Rs) / (rho - Rs);
+//
+//    let sFactor = Math.pow((1 + Rs / rho), -2);
+//
+//    let coordVel = new THREE.Vector4(st.vel.x / sFactor, st.vel.y / sFactor, st.vel.z / sFactor, st.vel.w / tFactor);
+//
+//    return new state(st.pos, coordVel);
+//
+//}
 //====end of geodesic stuff
 
 
 export {
+    scalingFactor,
     state,
     dState,
+    // fromBasis,
+    toBasis,
     createParametricSurface,
     createGeodesicSpray
 };
