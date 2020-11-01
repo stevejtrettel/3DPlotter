@@ -45,10 +45,12 @@ let time = 0.;
 
 
 function createCamera() {
-    // camera
-    camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.set(0, 40, 60);
 
+
+
+     camera
+     camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 1000);
+     camera.position.set(0, 40, 60);
 
 }
 
@@ -121,7 +123,7 @@ function createEnvScene() {
 
     var light2 = new THREE.Mesh(geometry, lightMaterial.clone());
     light2.material.color.setHex(0xF5E836);
-    light2.position.set(0, 5, 0);
+    light2.position.set(5, 3, 0);
     light2.scale.set(1, 0.1, 1);
     envScene.add(light2);
 
