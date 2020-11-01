@@ -11,7 +11,7 @@ import {
 } from './ui.js';
 
 import {
-    acceleration,
+    // acceleration,
     surfaceParamsUpdate,
     surface,
     rescaleU,
@@ -57,6 +57,69 @@ function createParametricSurface(t) {
 
 
 
+//Make a class for states
+//=============================================
+
+
+class state {
+    constructor(pos, vel) {
+        this.pos = pos;
+        this.vel = vel;
+    }
+    clone() {
+        let p = this.pos.clone();
+        let v = this.vel.clone();
+        return new state(p, v);
+    }
+    scaleVel(r) {
+        this.vel.multiplyScalar(r);
+    }
+    normalizeVel(r) {
+        this.vel.normalize();
+    }
+}
+
+
+
+class dState {
+    constructor(vel, acc) {
+        this.vel = vel;
+        this.acc = acc;
+    }
+    rescale(r) {
+        this.vel.multiplyScalar(r);
+        this.acc.multiplyScalar(r);
+    }
+
+    add(state2) {
+        this.vel.add(state2.vel);
+        this.acc.add(state2.acc);
+    }
+
+    clone() {
+        let v = this.vel.clone();
+        let a = this.acc.clone();
+        return new dState(v, a);
+    }
+}
+
+
+
+function nudge(st, dSt, step) {
+
+    let p = st.pos.clone();
+    p.add(dSt.vel.clone().multiplyScalar(step));
+
+    let v = st.vel.clone();
+    v.add(dSt.acc.clone().multiplyScalar(step));
+
+    return new state(p, v);
+}
+
+
+
+
+
 
 
 //DOING RUNGE KUTTA TO THE GEODESIC EQUATIONS
@@ -71,49 +134,82 @@ let acc = new THREE.Vector2();
 //state is a pair [pos,vel]
 
 
+//all the christoffel symbol trash goes in here!
+//function acceleration(state) {
+//
+//
+//    return new THREE.Vector2(0, 0);
+//}
+//
 
-//takes in Vector4[pos,vel] and returns Vector4[vel, acc]
-function stateDeriv(st4, t) {
 
-    let pos = new THREE.Vector2(st4.x, st4.y);
-    let vel = new THREE.Vector2(st4.z, st4.w);
+function acceleration(state) {
 
-    let acc = acceleration([pos, vel], t);
+    //unpack the position and velocity coordinates
+    let u = state.pos.x;
+    let v = state.pos.y;
+    let uP = state.vel.x;
+    let vP = state.vel.y;
 
-    return new THREE.Vector4(vel.x, vel.y, acc.x, acc.y);
+    let num = 4 * (uP * uP * (2 * u * u - 1) + vP * vP * (2 * v * v - 1) + 4 * u * v * uP * vP);
+    let denom = 4 * (u * u + v * v) + Math.exp(2 * (u * u + v * v));
+    let K = num / denom;
+    let acc = new THREE.Vector2(u, v);
+    acc.multiplyScalar(K);
+
+    return acc;
 }
 
 
 
 
+
+
+//takes in Vector4[pos,vel] and returns Vector4[vel, acc]
+function Deriv(state) {
+
+    let vel = state.vel;
+    let acc = acceleration(state);
+    let dSt = new dState(vel, acc);
+
+    return dSt;
+}
+
 //do Runge Kutta 4
-function geodesicOneStep(state, t) {
+function rk4(state) {
 
     let step = params.step;
-    //unpack the position and velocity
-    pos = state[0];
-    vel = state[1];
 
-    let st4 = new THREE.Vector4(pos.x, pos.y, vel.x, vel.y);
+    let step1 = state.clone();
+    let k1 = Deriv(step1);
+    k1.rescale(step);
 
-    let k1 = stateDeriv(st4, t + 0.5 * step).multiplyScalar(step);
+    let step2 = nudge(state, k1, 0.5);
+    let k2 = Deriv(step2)
+    k2.rescale(step);
 
-    let k2 = stateDeriv(st4.clone().add(k1.clone().multiplyScalar(0.5)), t + 0.5 * step).multiplyScalar(step);
+    let step3 = nudge(state, k2, 0.5);
+    let k3 = Deriv(step3)
+    k3.rescale(step);
 
-    let k3 = stateDeriv(st4.clone().add(k2.clone().multiplyScalar(0.5)), t + 0.5 * step).multiplyScalar(step);
+    let step4 = nudge(state, k3, 1.);
+    let k4 = Deriv(step4)
+    k4.rescale(step);
 
-    let k4 = stateDeriv(st4.clone().add(k3), t + 0.5 * step).multiplyScalar(step);
 
-    let adjustment = k1.clone().add(k2.clone().multiplyScalar(2));
-    adjustment.add(k3.clone().multiplyScalar(2));
+    //make the final adjustment
+
+    k2.rescale(2);
+    k3.rescale(2);
+
+    let adjustment = k1;
+    adjustment.add(k2);
+    adjustment.add(k3);
     adjustment.add(k4);
 
-    let soltn = st4.clone().add(adjustment.multiplyScalar(1 / 6));
+    let soltn = nudge(state, adjustment, 1 / 6);
 
-    //now need to break the solution down into the right type of object to return; a state
-    pos = new THREE.Vector2(soltn.x, soltn.y);
-    vel = new THREE.Vector2(soltn.z, soltn.w);
-    return [pos, vel];
+    return soltn;
 }
 
 
@@ -127,7 +223,35 @@ function geodesicOneStep(state, t) {
 //CREATING A TUBE GEOMETRY FOR GEODESICS
 //=============================================
 
+//integrate the geodesic flow
+function integrateGeodesic(st, width) {
 
+    let samplePts = [];
+
+    //the initial condition is dSt
+    let ui, vi;
+    let P;
+
+    let numSteps = params.length / params.step;
+
+    for (let i = 0; i < numSteps; i++) {
+
+        ui = (st.pos).x;
+        vi = (st.pos).y;
+
+        P = surface(ui, vi, 0);
+
+        //append points to the list
+        samplePts.push(P.multiplyScalar(scalingFactor));
+
+        //move forward one step along the geodesic in UV coordinates
+        st = rk4(st);
+
+    }
+
+    return samplePts;
+
+}
 
 
 
@@ -137,53 +261,29 @@ function createGeodesic(t, n, widthFactor) {
 
     let tubeWidth = widthFactor * params.width;
     let samples = 0.15 * params.res * params.length;
-
-
-    let ui, vi;
+    let samplePts;
 
     //initial tangent vector to geodesic;
-    let state = initialCondition(t, n);
+    let st = initialCondition(t, n);
+    //let st = new state(new THREE.Vector2(0.5, 0.5), new THREE.Vector2(1, 0));
 
-    let numSteps = params.length / params.step;
-
-    for (let i = 0; i < numSteps; i++) {
-
-        ui = (state[0]).x;
-        vi = (state[0]).y;
-
-        let Pi = surface(ui, vi, t);
-
-        //append points to the list
-        points.push(Pi.multiplyScalar(scalingFactor));
-
-        //move forward one step along the geodesic in UV coordinates
-        state = geodesicOneStep(state, t);
-
-    }
-
+    //this saves to 'points' the tube
+    samplePts = integrateGeodesic(st, tubeWidth);
 
     //make a curve out of all the points
-    curve = new THREE.CatmullRomCurve3(points);
+    curve = new THREE.CatmullRomCurve3(samplePts);
 
     //set the number of interpolation points here!
     let geodesic = new THREE.TubeBufferGeometry(curve, 10 * params.length, tubeWidth, 15, false);
 
 
-
-    // return geodesic;
-
-
-
-
     //=====if you want balls on the end of the geodesic
-    //slows it down slightly right now
 
     //get the endpoint of the curve:
-    let start = points[0];
-    let end = points.slice(-1)[0] //endpoint
+    let start = samplePts[0];
+    let end = samplePts.slice(-1)[0] //endpoint
 
     let ball = new THREE.SphereBufferGeometry(2. * tubeWidth, 15, 15);
-
 
     let endBall = ball.clone().translate(end.x, end.y, end.z);
     let startBall = ball.clone().translate(start.x, start.y, start.z);
@@ -240,6 +340,8 @@ function createGeodesicSpray(t, spraySize) {
 
 
 export {
+    state,
+    dState,
     createParametricSurface,
     createGeodesicSpray
 };

@@ -23,6 +23,8 @@ import {
 
 
 import {
+    state,
+    dState,
     createParametricSurface,
     createGeodesicSpray
 } from './geometry.js';
@@ -60,7 +62,7 @@ let curveMesh;
 
 //gives the initial condition as a function of time
 //n is the number of curve we are on
-function initialCondition(t, n) {
+function initialCondition(s, n) {
     let pv = rescaleV(params.p);
     let wiggle = params.wiggle / 10;
     //==== INITIAL POSITION
@@ -82,12 +84,12 @@ function initialCondition(t, n) {
     //let theta = t / 5 + n * spacing;
 
     //control angle with slider
-    let theta = params.angle + n * spacing + Math.cos(t) * wiggle;
+    let theta = params.angle + n * spacing + Math.cos(s) * wiggle;
 
     //assemble the velocity vector
     let vel = new THREE.Vector2(Math.cos(theta), Math.sin(theta));
 
-    return [pos, vel];
+    return new state(pos, vel);
 }
 
 

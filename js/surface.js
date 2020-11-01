@@ -97,23 +97,23 @@ function Z(u, v) {
 }
 
 
-//all the christoffel symbol trash goes in here!
-function acceleration(state, t) {
-
-    //unpack the position and velocity coordinates
-    let u = state[0].x;
-    let v = state[0].y;
-    let uP = state[1].x;
-    let vP = state[1].y;
-
-    let num = 4 * A * A * B * B * (uP * uP * (2 * B * u * u - 1) + vP * vP * (2 * B * v * v - 1) + 4 * B * u * v * uP * vP);
-    let denom = 4 * A * A * B * B * (u * u + v * v) + Math.exp(2 * B * (u * u + v * v));
-    let K = num / denom;
-    let acc = new THREE.Vector2(u, v);
-    acc.multiplyScalar(K);
-
-    return acc;
-}
+////all the christoffel symbol trash goes in here!
+//function acceleration(state, t) {
+//
+//    //unpack the position and velocity coordinates
+//    let u = state[0].x;
+//    let v = state[0].y;
+//    let uP = state[1].x;
+//    let vP = state[1].y;
+//
+//    let num = 4 * A * A * B * B * (uP * uP * (2 * B * u * u - 1) + vP * vP * (2 * B * v * v - 1) + 4 * B * u * v * uP * vP);
+//    let denom = 4 * A * A * B * B * (u * u + v * v) + Math.exp(2 * B * (u * u + v * v));
+//    let K = num / denom;
+//    let acc = new THREE.Vector2(u, v);
+//    acc.multiplyScalar(K);
+//
+//    return acc;
+//}
 
 
 //////=============================================
@@ -379,7 +379,7 @@ function equationUpdate() {
 
 
 export {
-    acceleration,
+    // acceleration,
     surface,
     surfaceParamsUpdate,
     rescaleU,
