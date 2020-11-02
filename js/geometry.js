@@ -282,6 +282,23 @@ function integrateGeodesic(st, width) {
 
 
 
+function curveSpray(velList) {
+
+    let curveList = [];
+    let geodesic;
+
+    for (let i = 0; i < velList.length; i++) {
+
+        geodesic = integrateGeodesic(velList[i], params.width);
+        curveList.push(geodesic);
+
+    }
+
+    return curveList;
+
+}
+
+
 function createGeodesic(t, n, widthFactor) {
 
 
@@ -368,6 +385,7 @@ export {
     scalingFactor,
     state,
     dState,
+    curveSpray,
     createParametricSurface,
     createGeodesicSpray
 };

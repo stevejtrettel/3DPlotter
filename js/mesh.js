@@ -27,6 +27,7 @@ import {
     state,
     dState,
     createParametricSurface,
+    curveSpray,
     createGeodesicSpray
 } from './geometry.js';
 
