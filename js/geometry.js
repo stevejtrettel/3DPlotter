@@ -192,9 +192,7 @@ function Deriv(state) {
 }
 
 //do Runge Kutta 4
-function rk4(state) {
-
-    let step = params.step;
+function rk4(state, step) {
 
     let step1 = state.clone();
     let k1 = Deriv(step1);
@@ -249,6 +247,7 @@ function integrateGeodesic(st, width) {
     let P, p;
 
     let numSteps = params.length / params.step;
+    let step = params.step;
 
     for (let i = 0; i < numSteps; i++) {
 
@@ -258,13 +257,22 @@ function integrateGeodesic(st, width) {
         //project away the time coordinate, just draw space:
 
         P = st.pos;
-        p = new THREE.Vector3(P.x, P.y, P.z);
+
+        //rotate so xyz is normal:
+        //p.w is the time component:
+        p = new THREE.Vector3(P.x, P.w, -P.y);
         // console.log(p);
         //append points to the list
-        samplePts.push(p.multiplyScalar(scalingFactor));
+        samplePts.push(p.clone().multiplyScalar(scalingFactor));
 
-        //move forward one step along the geodesic in UV coordinates
-        st = rk4(st);
+        //if you hit the EH, break:
+        if (p.length() - 1. < 0.1) {
+            break;
+        }
+
+        //choose step size depending on proximity of P to EH:
+        //step = Math.min(0.2, 0.5 * (p.length() - 1.));
+        st = rk4(st, step);
 
     }
 
@@ -377,7 +385,11 @@ function createGeodesicSpray(t, spraySize) {
 //
 //}
 
-function toBasis(st) {
+function toCoords(st) {
+
+    //take a tangent vector expressed in local minkowski frame where t2-s^2=0, and convert to the global coordinates by rescalign time and space components:
+
+
     let Rs = 1;
 
     let x = st.pos.x;
@@ -422,8 +434,7 @@ export {
     scalingFactor,
     state,
     dState,
-    // fromBasis,
-    toBasis,
+    toCoords,
     createParametricSurface,
     createGeodesicSpray
 };

@@ -26,8 +26,7 @@ import {
     scalingFactor,
     state,
     dState,
-    toBasis,
-    //fromBasis,
+    toCoords,
     createParametricSurface,
     createGeodesicSpray
 } from './geometry.js';
@@ -96,7 +95,7 @@ function initialCondition(s, n) {
 
     let basisState = new state(pos, vel);
 
-    let coordState = toBasis(basisState);
+    let coordState = toCoords(basisState);
 
     return coordState;
 }
