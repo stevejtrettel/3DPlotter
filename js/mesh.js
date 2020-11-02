@@ -69,7 +69,7 @@ function initialCondition(s, n) {
     //==== INITIAL POSITION
 
     //start from center
-    let pos = new THREE.Vector4(3.14, 3.14 / 4. + params.p, 0., 0.);
+    let pos = new THREE.Vector4(3., 3., 0., 0.).multiplyScalar(4. * params.p);
 
     //start from a corner
     //let pos = new THREE.Vector2(uMin + uRng / 8, vMin + uRng / 8);
@@ -88,7 +88,7 @@ function initialCondition(s, n) {
     let theta = params.angle + n * spacing + Math.cos(s) * wiggle;
 
     //assemble the velocity vector
-    let vel = new THREE.Vector4(Math.cos(theta), 1., Math.sin(theta), 1.);
+    let vel = new THREE.Vector4(Math.cos(theta), Math.sin(theta), 0, 1.);
 
     return new state(pos, vel);
 
@@ -212,9 +212,9 @@ function guiMeshUpdate() { //all the gui updates
 
     //
     //update the mesh graphics parameters;
-        parametricMesh.material.metalness = params.metal;
-        parametricMesh.material.roughness = params.rough / 4.;
-        parametricMesh.material.color.set(params.color);
+    parametricMesh.material.metalness = params.metal;
+    parametricMesh.material.roughness = params.rough / 4.;
+    parametricMesh.material.color.set(params.color);
 
     curveMesh.material.color.set(params.curveColor);
     curveMesh.material.metalness = params.metal;

@@ -64,17 +64,17 @@ function createGUI() {
 
     domain.close();
 
-//    gui.add(params, 'xCoordText').name('X'
-//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
-//    gui.add(params, 'yCoordText').name('Y'
-//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
-//    gui.add(params, 'zCoordText').name('Z'
-//        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+    //    gui.add(params, 'xCoordText').name('X'
+    //        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+    //    gui.add(params, 'yCoordText').name('Y'
+    //        .concat('a,b,c,t'.sub().concat('(u,v)=')));
+    //    gui.add(params, 'zCoordText').name('Z'
+    //        .concat('a,b,c,t'.sub().concat('(u,v)=')));
 
     let parameters = gui.addFolder('Geodesic');
 
     parameters.add(params, 'p', 0, 1, 0.01).name('Position');
-    parameters.add(params, 'angle', 0, 6.28, 0.01).name('Angle');
+    parameters.add(params, 'angle', 0, 6.28, 0.001).name('Angle');
     parameters.add(params, 'spray', 1, 10, 1).name('Spray');
 
     parameters.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');
