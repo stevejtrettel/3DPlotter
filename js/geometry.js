@@ -134,7 +134,7 @@ let acc = new THREE.Vector4();
 //state is a pair [pos,vel]
 
 
-
+//what is the force field we are subject to?
 function acceleration(state) {
     let Rs = 1.;
 
@@ -144,34 +144,22 @@ function acceleration(state) {
     let z = state.pos.z;
     let t = state.pos.w;
 
+    let R = Math.sqrt(x * x + y * y + z * z);
+
     let xP = state.vel.x;
     let yP = state.vel.y;
     let zP = state.vel.z;
     let tP = state.vel.w;
 
 
-    let rho2 = x * x + y * y + z * z;
-    let rho = Math.sqrt(rho2);
 
-    //the time derivative
-    let tAcc = 4 * Rs * tP * (x * xP + y * yP * z * zP) /
-        (rho * (rho2 - Rs * Rs));
+    //newtonian gravity sun
+    let acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(5 / (R * R * R));
 
-    //the space derivatives
-    let C1 = 2 * Rs / (Rs + rho);
-    let C2 = (Rs - rho) / (Math.pow(Rs + rho, 6)) * rho2 * rho * tP * tP;
-    let C3 = 1 / rho2;
 
-    let xa = xP * xP + 2 * xP * (yP * yP + zP * zP) - x * (yP * yP + zP * zP);
-    let xAcc = C1 * (C2 * x + C3 * xa);
 
-    let ya = yP * yP + 2 * yP * (xP * xP + zP * zP) - y * (xP * xP + zP * zP);
-    let yAcc = C1 * (C2 * y + C3 * ya);
-
-    let za = zP * zP + 2 * zP * (xP * xP + yP * yP) - z * (xP * xP + yP * yP);
-    let zAcc = C1 * (C2 * z + C3 * za);
-
-    let acc = new THREE.Vector4(xAcc, yAcc, zAcc, tAcc);
+    //constant downwards gravity
+    //let acc = new THREE.Vector4(0., 0., -0.1, 0.);
 
     return acc;
 }
@@ -260,13 +248,13 @@ function integrateGeodesic(st, width) {
 
         //rotate so xyz is normal:
         //p.w is the time component:
-        p = new THREE.Vector3(P.x, P.w, -P.y);
+        p = new THREE.Vector3(P.x, P.z, -P.y);
         // console.log(p);
         //append points to the list
         samplePts.push(p.clone().multiplyScalar(scalingFactor));
 
         //if you hit the EH, break:
-        if (p.length() - 1. < 0.1) {
+        if (p.length() - 1. < 0.51) {
             break;
         }
 
@@ -361,72 +349,6 @@ function createGeodesicSpray(t, spraySize) {
 }
 
 
-//
-//
-//function basis(pos) {
-//    let Rs = 1;
-//
-//    let x = pos.x;
-//    let y = pos.y;
-//    let z = pos.z;
-//    let t = pos.w;
-//
-//    let rho = Math.sqrt(x * x + y * y * z * z);
-//
-//    let et = new THREE.Vector4(0, 0, 0, (rho + Rs) / (rho - Rs));
-//
-//    let C = Math.pow((1 + Rs / rho), -2);
-//
-//    let ex = new THREE.Vector4(1, 0, 0, 0).multiplyScalar(C);
-//    let ey = new THREE.Vector4(0, 1, 0, 0).multiplyScalar(C);
-//    let ez = new THREE.Vector4(0, 0, 1, 0).multiplyScalar(C);
-//
-//    return [ex, ey, ez];
-//
-//}
-
-function toCoords(st) {
-
-    //take a tangent vector expressed in local minkowski frame where t2-s^2=0, and convert to the global coordinates by rescalign time and space components:
-
-
-    let Rs = 1;
-
-    let x = st.pos.x;
-    let y = st.pos.y;
-    let z = st.pos.z;
-    let t = st.pos.w;
-
-    let rho = Math.sqrt(x * x + y * y * z * z);
-
-    let tFactor = (rho + Rs) / (rho - Rs);
-    let sFactor = Math.pow((1 + Rs / rho), -2);
-
-    let basisVel = new THREE.Vector4(sFactor * st.vel.x, sFactor * st.vel.y, sFactor * st.vel.z, tFactor * st.vel.w);
-
-    return new state(st.pos, basisVel);
-
-}
-
-//function fromBasis(st) {
-//    let Rs = 1;
-//
-//    let x = st.pos.x;
-//    let y = st.pos.y;
-//    let z = st.pos.z;
-//    let t = st.pos.w;
-//
-//    let rho = Math.sqrt(x * x + y * y * z * z);
-//
-//    let tFactor = (rho + Rs) / (rho - Rs);
-//
-//    let sFactor = Math.pow((1 + Rs / rho), -2);
-//
-//    let coordVel = new THREE.Vector4(st.vel.x / sFactor, st.vel.y / sFactor, st.vel.z / sFactor, st.vel.w / tFactor);
-//
-//    return new state(st.pos, coordVel);
-//
-//}
 //====end of geodesic stuff
 
 
@@ -434,7 +356,6 @@ export {
     scalingFactor,
     state,
     dState,
-    toCoords,
     createParametricSurface,
     createGeodesicSpray
 };

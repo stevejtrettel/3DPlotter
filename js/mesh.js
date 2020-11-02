@@ -26,7 +26,6 @@ import {
     scalingFactor,
     state,
     dState,
-    toCoords,
     createParametricSurface,
     createGeodesicSpray
 } from './geometry.js';
@@ -89,15 +88,10 @@ function initialCondition(s, n) {
     let theta = params.angle + n * spacing + Math.cos(s) * wiggle;
 
     //assemble the velocity vector
-    let vel = new THREE.Vector4(Math.cos(theta), Math.sin(theta), 0., 1.);
+    let vel = new THREE.Vector4(Math.cos(theta), 1., Math.sin(theta), 1.);
 
-    //length 1 in space and time direction:this is lightlike in the local coordinates: need to convert
+    return new state(pos, vel);
 
-    let basisState = new state(pos, vel);
-
-    let coordState = toCoords(basisState);
-
-    return coordState;
 }
 
 
@@ -187,7 +181,7 @@ function createMeshes(cubeTexture) {
 
     //CREATE THE GEOMETRIES
 
-    //parametric surface geometry
+    //  parametric surface geometry
     geometry = new THREE.SphereBufferGeometry(scalingFactor, 32, 32);
 
     parametricMesh = new THREE.Mesh(geometry, material);
@@ -218,9 +212,9 @@ function guiMeshUpdate() { //all the gui updates
 
     //
     //update the mesh graphics parameters;
-    parametricMesh.material.metalness = params.metal;
-    parametricMesh.material.roughness = params.rough / 4.;
-    parametricMesh.material.color.set(params.color);
+        parametricMesh.material.metalness = params.metal;
+        parametricMesh.material.roughness = params.rough / 4.;
+        parametricMesh.material.color.set(params.color);
 
     curveMesh.material.color.set(params.curveColor);
     curveMesh.material.metalness = params.metal;
@@ -229,12 +223,11 @@ function guiMeshUpdate() { //all the gui updates
     //drawTex = params.drawTex;
 
     //decide based on the boolean drawTex
-    if (params.drawTex == 1) {
-        parametricMesh.material = texMaterial;
-    } else {
-        parametricMesh.material = colorMaterial;
-    }
-
+    //    if (params.drawTex == 1) {
+    //        parametricMesh.material = texMaterial;
+    //    } else {
+    //        parametricMesh.material = colorMaterial;
+    //    }
 
 
 
