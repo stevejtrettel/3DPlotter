@@ -22,16 +22,17 @@ let params = {
     b: 0.5,
     c: 0.2,
     p: 0.39,
-    angle: 3.14,
-    spray: 1,
+    angle: 3.5,
+    theta: 0,
+    spray: 0.2,
     wiggle: 0.2,
     length: 10,
-    step: 0.3,
-    xCoordText: xCoordText,
-    yCoordText: yCoordText,
-    zCoordText: zCoordText,
-    drawTex: 0,
-    color: 0x1e43,
+    step: 0.1,
+    //    xCoordText: xCoordText,
+    //    yCoordText: yCoordText,
+    //    zCoordText: zCoordText,
+    // drawTex: 0,
+    color: 0x0,
     curveColor: 0x0,
     intensity: 0.5,
     metal: 0.,
@@ -51,18 +52,18 @@ function createGUI() {
 
     gui.domElement.style.userSelect = 'none';
 
-
-    let domain = gui.addFolder('Surface');
-
-    domain.add(params, 'uPercent', 0, 1, 0.01);
-
-    domain.add(params, 'vPercent',
-        0, 1, 0.01);
-    domain.add(params, 'a', 0, 1, 0.01).name('A');
-    domain.add(params, 'b', 0, 1, 0.01).name('B');
-    domain.add(params, 'c', 0, 1, 0.01).name('C');
-
-    domain.close();
+    //
+    //    let domain = gui.addFolder('Surface');
+    //
+    //    domain.add(params, 'uPercent', 0, 1, 0.01);
+    //
+    //    domain.add(params, 'vPercent',
+    //        0, 1, 0.01);
+    //    domain.add(params, 'a', 0, 1, 0.01).name('A');
+    //    domain.add(params, 'b', 0, 1, 0.01).name('B');
+    //    domain.add(params, 'c', 0, 1, 0.01).name('C');
+    //
+    //    domain.close();
 
     //    gui.add(params, 'xCoordText').name('X'
     //        .concat('a,b,c,t'.sub().concat('(u,v)=')));
@@ -73,39 +74,38 @@ function createGUI() {
 
     let parameters = gui.addFolder('Geodesic');
 
-    parameters.add(params, 'p', 0, 1, 0.01).name('Position');
-    parameters.add(params, 'angle', 0, 6.28, 0.001).name('Angle');
-    parameters.add(params, 'spray', 1, 10, 1).name('Spray');
+    parameters.add(params, 'angle', 0, 6.28, 0.01).name('Phi');
+    parameters.add(params, 'theta', 0, 6.28, 0.01).name('Theta');
+    parameters.add(params, 'spray', 0, 1, 0.01).name('Spread');
 
     parameters.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');
-    parameters.add(params, 'length', 0.1, 100, 0.1).name('Length');
-    parameters.add(params, 'step', 0.01, 0.5, 0.01).name('StepSize');
+    parameters.add(params, 'length', 0.1, 50, 0.1).name('Length');
+    parameters.add(params, 'step', 0.01, 0.2, 0.01).name('StepSize');
+
+    // let graphics = gui.addFolder('Graphics');
 
 
-    let graphics = gui.addFolder('Graphics');
+    //    graphics.add(params, 'drawTex', {
+    //        No: 0,
+    //        Yes: 1
+    //    }).name('Draw Coordinate Grid');
 
+    //    graphics.addColor(params, 'color')
+    //        .name('Surface Color');
+    //
+    //    graphics.addColor(params, 'curveColor')
+    //        .name('Geodesic Color');
 
-    graphics.add(params, 'drawTex', {
-        No: 0,
-        Yes: 1
-    }).name('Draw Coordinate Grid');
-
-    graphics.addColor(params, 'color')
-        .name('Surface Color');
-
-    graphics.addColor(params, 'curveColor')
-        .name('Geodesic Color');
-
-    graphics.add(params, 'intensity', 0., 1., 0.05).name('Brightness');
-    graphics.add(params, 'metal', 0., 1., 0.05).name('Metalicity');
-    graphics.add(params, 'rough', 0., 1., 0.05).name('Roughness');
-    graphics.add(params, 'res', 10, 150, 5);
-    graphics.add(params, 'width', 0.01, 1, 0.01).name('TubeWidth');
-    graphics.add(params, 'zRotation', 0, 1, 0.05).name('Rotate');
-    graphics.add(params, 'tumble', 0, 1, 0.05).name('Tumble');
-
-
-    graphics.close();
+    //    graphics.add(params, 'intensity', 0., 1., 0.05).name('Brightness');
+    //    graphics.add(params, 'metal', 0., 1., 0.05).name('Metalicity');
+    //    graphics.add(params, 'rough', 0., 1., 0.05).name('Roughness');
+    //    graphics.add(params, 'res', 10, 150, 5);
+    //    graphics.add(params, 'width', 0.01, 1, 0.01).name('TubeWidth');
+    //    graphics.add(params, 'zRotation', 0, 1, 0.05).name('Rotate');
+    //    graphics.add(params, 'tumble', 0, 1, 0.05).name('Tumble');
+    //
+    //
+    //    graphics.close();
 }
 
 

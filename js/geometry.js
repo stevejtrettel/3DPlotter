@@ -10,16 +10,16 @@ import {
     params
 } from './ui.js';
 
-import {
-    // acceleration,
-    surfaceParamsUpdate,
-    surface,
-    rescaleU,
-    rescaleV
-} from './surface.js';
+//import {
+//    // acceleration,
+//    surfaceParamsUpdate,
+//    surface,
+//    rescaleU,
+//    rescaleV
+//} from './surface.js';
 
 import {
-    initialCondition
+    flatSprayCondition
 } from './mesh.js';
 
 let points;
@@ -43,30 +43,29 @@ function sphCoords(phi, theta) {
 
 
 
-
-//MAKING A PARAMETRIC SURFACE FUNCTIONS
-//=============================================
-
-
-function createParametricSurface(t) {
-
-    return new THREE.ParametricBufferGeometry(
-        (u, v, dest) => {
-
-            //rescale based on the size of the parameterization domain
-            let U = rescaleU(u);
-            let V = rescaleV(v);
-
-            let P = surface(U, V, t);
-
-
-            dest.set(P.x, P.y, P.z).multiplyScalar(scalingFactor);
-        },
-        params.res, params.res //slices and stacks
-    )
-
-}
-
+//
+////MAKING A PARAMETRIC SURFACE FUNCTIONS
+////=============================================
+//
+//
+//function createParametricSurface(t) {
+//
+//    return new THREE.ParametricBufferGeometry(
+//        (u, v, dest) => {
+//
+//            //rescale based on the size of the parameterization domain
+//            let U = rescaleU(u);
+//            let V = rescaleV(v);
+//
+//            let P = surface(U, V, t);
+//
+//
+//            dest.set(P.x, P.y, P.z).multiplyScalar(scalingFactor);
+//        },
+//        params.res, params.res //slices and stacks
+//    )
+//
+//}
 
 
 
@@ -297,15 +296,22 @@ function integrateGeodesic(st) {
 }
 
 
+//give the output as a curve
+function geodesicPath(st) {
+    let samplePts = integrateGeodesic(st);
+    return new THREE.CatmullRomCurve3(samplePts);
+}
 
-function curveSpray(velList) {
+
+
+function sprayPath(velList) {
 
     let curveList = [];
     let geodesic;
 
     for (let i = 0; i < velList.length; i++) {
 
-        geodesic = integrateGeodesic(velList[i]);
+        geodesic = geodesicPath(velList[i]);
         curveList.push(geodesic);
 
     }
@@ -315,7 +321,14 @@ function curveSpray(velList) {
 }
 
 
-function createGeodesic(t, n, widthFactor) {
+
+
+
+
+
+
+
+function geodesicGeometry(t, n, widthFactor) {
 
 
     let tubeWidth = widthFactor * params.width;
@@ -323,7 +336,7 @@ function createGeodesic(t, n, widthFactor) {
     let samplePts;
 
     //initial tangent vector to geodesic;
-    let st = initialCondition(t, n);
+    let st = flatSprayCondition(t, n);
     console.log(st);
     //let st = new state(new THREE.Vector2(0.5, 0.5), new THREE.Vector2(1, 0));
 
@@ -359,7 +372,7 @@ function createGeodesic(t, n, widthFactor) {
 
 function createGeodesicSpray(t, spraySize) {
 
-    let ray = createGeodesic(t, 0, 1);
+    let ray = geodesicGeometry(t, 0, 1);
 
     if (spraySize > 1) {
 
@@ -375,10 +388,10 @@ function createGeodesicSpray(t, spraySize) {
 
             widthFactor = 1 / (1 + i);
 
-            ray = createGeodesic(t, i, widthFactor);
+            ray = geodesicGeometry(t, i, widthFactor);
             geodesics.push(ray);
 
-            ray = createGeodesic(t, -i, widthFactor);
+            ray = geodesicGeometry(t, -i, widthFactor);
             geodesics.push(ray);
         }
 
@@ -402,7 +415,6 @@ export {
     scalingFactor,
     state,
     dState,
-    curveSpray,
-    createParametricSurface,
+    sprayPath,
     createGeodesicSpray
 };
