@@ -28,6 +28,22 @@ let curve;
 let scalingFactor = 5;
 
 
+
+
+function sphCoords(phi, theta) {
+    let x = Math.cos(theta) * Math.sin(phi);
+    let y = Math.sin(theta) * Math.sin(phi);
+    let z = Math.cos(phi);
+    return new THREE.Vector3(x, y, z);
+}
+
+
+
+
+
+
+
+
 //MAKING A PARAMETRIC SURFACE FUNCTIONS
 //=============================================
 
@@ -235,7 +251,7 @@ function rk4(state, step) {
 //=============================================
 
 //integrate the geodesic flow
-function integrateGeodesic(st, width) {
+function integrateGeodesic(st) {
 
     let samplePts = [];
 
@@ -289,7 +305,7 @@ function curveSpray(velList) {
 
     for (let i = 0; i < velList.length; i++) {
 
-        geodesic = integrateGeodesic(velList[i], params.width);
+        geodesic = integrateGeodesic(velList[i]);
         curveList.push(geodesic);
 
     }
@@ -312,7 +328,7 @@ function createGeodesic(t, n, widthFactor) {
     //let st = new state(new THREE.Vector2(0.5, 0.5), new THREE.Vector2(1, 0));
 
     //this saves to 'points' the tube
-    samplePts = integrateGeodesic(st, tubeWidth);
+    samplePts = integrateGeodesic(st);
 
     //make a curve out of all the points
     curve = new THREE.CatmullRomCurve3(samplePts);
@@ -382,6 +398,7 @@ function createGeodesicSpray(t, spraySize) {
 
 
 export {
+    sphCoords,
     scalingFactor,
     state,
     dState,
