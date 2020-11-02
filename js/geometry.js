@@ -170,18 +170,16 @@ function acceleration(state) {
 
 
     //schwarzchild geodesics are the integral curves of the following force, if you project off the time direction:
-
-    //newtonian gravity sun
-    let acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(10 * params.a / (R * R * R * R * R));
+let acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(10 * params.a / (R * R * R * R * R));
 
 
 
-
-    //
     //    //newtonian gravity sun
-    //    let acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(5 / (R * R * R));
-    //
-
+//        let acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(5 / (R * R * R));
+    
+    
+    
+    
     //constant downwards gravity
     //let acc = new THREE.Vector4(0., 0., -0.1, 0.);
 

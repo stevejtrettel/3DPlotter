@@ -22,11 +22,13 @@ let params = {
     b: 0.5,
     c: 0.2,
     p: 0.39,
-    angle: 3.5,
-    theta: 0,
-    spray: 0.2,
+    family: 1,
+    distance: 5,
+    angle: 2.47,
+    theta: 0.7,
+    spray: 0.03,
     wiggle: 0.2,
-    length: 10,
+    length: 30,
     step: 0.1,
     //    xCoordText: xCoordText,
     //    yCoordText: yCoordText,
@@ -72,15 +74,21 @@ function createGUI() {
     //    gui.add(params, 'zCoordText').name('Z'
     //        .concat('a,b,c,t'.sub().concat('(u,v)=')));
 
-    let parameters = gui.addFolder('Geodesic');
+    //  let parameters = gui.addFolder('Geodesic');
 
-    parameters.add(params, 'angle', 0, 6.28, 0.01).name('Phi');
-    parameters.add(params, 'theta', 0, 6.28, 0.01).name('Theta');
-    parameters.add(params, 'spray', 0, 1, 0.01).name('Spread');
+    gui.add(params, 'family', {
+        Flat: 0,
+        Round: 1
+    }).name('Geodesic Spray');
 
-    parameters.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');
-    parameters.add(params, 'length', 0.1, 50, 0.1).name('Length');
-    parameters.add(params, 'step', 0.01, 0.2, 0.01).name('StepSize');
+    gui.add(params, 'distance', 1, 10, 0.01).name('Distance');
+    gui.add(params, 'angle', 0, 6.28, 0.01).name('Phi');
+    gui.add(params, 'theta', 0, 6.28, 0.01).name('Theta');
+    gui.add(params, 'spray', 0, 1, 0.01).name('Spread');
+
+    gui.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');
+    gui.add(params, 'length', 0.1, 50, 0.1).name('Length');
+    gui.add(params, 'step', 0.01, 0.2, 0.01).name('StepSize');
 
     // let graphics = gui.addFolder('Graphics');
 
