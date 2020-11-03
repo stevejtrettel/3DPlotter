@@ -213,10 +213,11 @@ function createMeshes(cubeTexture) {
     //CREATE THE MATERIALS 
 
 
-    curveMaterial = new THREE.MeshStandardMaterial({
-        color: 0x1e43,
-        metalness: params.metal,
-        roughness: params.rough,
+    curveMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff, //0x1e43,
+        //        metalness: params.metal,
+        //        roughness: params.rough,
+        clearcoat: 0.5,
         envMap: cubeTexture,
         envMapIntensity: 1.,
         side: THREE.DoubleSide,
@@ -457,15 +458,17 @@ function meshUpdate(currentTime) {
 
 
 
-
-
     //===============================================
     // 3d spray
     //================================================
 
     if (params.family == 1) {
 
-        velList = singleRing(initialCondition(currentTime), currentTime);
+        let iniState = initialCondition(currentTime);
+        let p = iniState.pos.clone().multiplyScalar(scalingFactor);
+        iniSphere.position.set(p.x, p.z, -p.y);
+
+        velList = singleRing(iniState, currentTime);
         curves = sprayPath(velList);
 
         curve0.geometry.dispose();

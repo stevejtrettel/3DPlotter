@@ -18,16 +18,17 @@ let zCoordText = "(1+a)*sin(u)*sin(v)+0.3*sin(t)*sin(u*v)";
 let params = {
     uPercent: 1,
     vPercent: 1,
-    a: 0.5,
+    a: 1.,
     b: 0.5,
     c: 0.2,
     p: 0.39,
     family: 1,
+    physics: 2,
     distance: 5,
-    angle: 2.47,
-    theta: 0.7,
-    spray: 0.03,
-    wiggle: 0.2,
+    angle: 2.84,
+    theta: 0.,
+    spray: 0.3,
+    wiggle: 0.15,
     length: 30,
     step: 0.1,
     //    xCoordText: xCoordText,
@@ -76,14 +77,15 @@ function createGUI() {
 
     //  let parameters = gui.addFolder('Geodesic');
 
-    gui.add(params, 'family', {
-        Flat: 0,
-        Round: 1
-    }).name('Geodesic Spray');
+    gui.add(params, 'physics', {
+        Newtonian: 0,
+        Relativistic: 1,
+        Relativistic_Light: 2
+    }).name('Physics');
 
-    gui.add(params, 'distance', 1, 10, 0.01).name('Distance');
-    gui.add(params, 'angle', 0, 6.28, 0.01).name('Phi');
-    gui.add(params, 'theta', 0, 6.28, 0.01).name('Theta');
+    gui.add(params, 'distance', 1, 10, 0.001).name('Distance');
+    gui.add(params, 'angle', 0, 6.28, 0.001).name('Phi');
+    gui.add(params, 'theta', 0, 6.28, 0.001).name('Theta');
     gui.add(params, 'spray', 0, 1, 0.01).name('Spread');
 
     gui.add(params, 'wiggle', 0, 1, 0.01).name('Wiggle');

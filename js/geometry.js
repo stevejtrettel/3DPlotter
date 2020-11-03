@@ -166,20 +166,29 @@ function acceleration(state) {
     let zP = state.vel.z;
     let tP = state.vel.w;
 
-
+    let acc;
 
 
     //schwarzchild geodesics are the integral curves of the following force, if you project off the time direction:
-let acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(10 * params.a / (R * R * R * R * R));
+
+    if (params.physics == 2) {
 
 
+        //the force law to get the geodesic actually depends on the angular momentum! Which is computed from the state:
+        let ang = state.pos.clone().cross(state.vel);
+        let L = ang.length();
+        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(1.5 * L * L / (R * R * R * R * R));
 
-    //    //newtonian gravity sun
-//        let acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(5 / (R * R * R));
-    
-    
-    
-    
+    } else if (params.physics == 0) {
+
+        //newtonian gravity sun
+        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(5 / (R * R * R));
+
+    } else if (params.physics == 1) {
+        acc = new THREE.Vector4(0., 0., -0.1, 0.);
+    }
+
+
     //constant downwards gravity
     //let acc = new THREE.Vector4(0., 0., -0.1, 0.);
 
