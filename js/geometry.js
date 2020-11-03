@@ -149,6 +149,59 @@ let acc = new THREE.Vector4();
 //state is a pair [pos,vel]
 
 
+
+//======right now not being used==========
+//======the direct geodesic equations in 4 space =======
+
+function acceleration4D(state) {
+    let Rs = 1.;
+
+    //unpack the position and velocity coordinates
+    let x = state.pos.x;
+    let y = state.pos.y;
+    let z = state.pos.z;
+    let t = state.pos.w;
+
+    let xP = state.vel.x;
+    let yP = state.vel.y;
+    let zP = state.vel.z;
+    let tP = state.vel.w;
+
+
+    let rho2 = x * x + y * y + z * z;
+    let rho = Math.sqrt(rho2);
+
+    //the time derivative
+    let tAcc = 4 * Rs * tP * (x * xP + y * yP * z * zP) /
+        (rho * (rho2 - Rs * Rs));
+
+    //the space derivatives
+    let C1 = 2 * Rs / (Rs + rho);
+    let C2 = (Rs - rho) / (Math.pow(Rs + rho, 6)) * rho2 * rho * tP * tP;
+    let C3 = 1 / rho2;
+
+    let xa = xP * xP + 2 * xP * (yP * yP + zP * zP) - x * (yP * yP + zP * zP);
+    let xAcc = C1 * (C2 * x + C3 * xa);
+
+    let ya = yP * yP + 2 * yP * (xP * xP + zP * zP) - y * (xP * xP + zP * zP);
+    let yAcc = C1 * (C2 * y + C3 * ya);
+
+    let za = zP * zP + 2 * zP * (xP * xP + yP * yP) - z * (xP * xP + yP * yP);
+    let zAcc = C1 * (C2 * z + C3 * za);
+
+    let acc = new THREE.Vector4(xAcc, yAcc, zAcc, tAcc);
+
+    return acc;
+}
+
+
+
+
+
+
+
+
+
 //what is the force field we are subject to?
 function acceleration(state) {
     let Rs = 1.;
