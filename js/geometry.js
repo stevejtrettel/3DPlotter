@@ -177,16 +177,33 @@ function acceleration(state) {
         //the force law to get the geodesic actually depends on the angular momentum! Which is computed from the state:
         let ang = state.pos.clone().cross(state.vel);
         let L = ang.length();
-        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(1.5 * L * L / (R * R * R * R * R));
+        let magnitude = 1.5 * L * L / (R * R * R * R * R);
+        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(magnitude);
 
     } else if (params.physics == 0) {
 
         //newtonian gravity sun
         acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(5 / (R * R * R));
 
-    } else if (params.physics == 1) {
-        acc = new THREE.Vector4(0., 0., -0.1, 0.);
     }
+    //    
+    //    
+    //    else if (params.physics == 1) {
+    //
+    //        // the force for massive particles instead:
+    //
+    //        let ang = state.pos.clone().cross(state.vel);
+    //
+    //        //a gives the velocity
+    //        let L = ang.length();
+    //        L = L * params.a;
+    //
+    //        //add to the above a second contribution
+    //        let magnitude = 1.5 * L * L / (R * R * R * R * R) + 1 / (R * R * R);
+    //
+    //        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(magnitude);
+    //
+    //    }
 
 
     //constant downwards gravity
@@ -284,13 +301,17 @@ function integrateGeodesic(st) {
         //append points to the list
         samplePts.push(p.clone().multiplyScalar(scalingFactor));
 
-        //if you hit the EH,break :
-        //        if (p.length() - 1. < -0.1) {
-        //            break;
-        //        }
-        if (p.length() < 0.8) {
+
+        //if you are simulating relativistic physics and you enter the event horizon, stop: if classical - stop when you get inside of some small distance:
+        let stopRad = 1.;
+        if (params.physics == 0) {
+            stopRad = 0.2
+        }
+
+        if (p.length() < 0.8 * stopRad) {
             break;
         }
+
 
         //choose step size depending on proximity of P to EH:
         //step = Math.min(0.2, 0.5 * (p.length() - 1.));

@@ -84,6 +84,7 @@ function createGUI() {
     }).name('Physics');
 
     gui.add(params, 'distance', 1, 10, 0.001).name('Distance');
+    gui.add(params, 'a', 0, 1, 0.001).name('Velocity');
     gui.add(params, 'angle', 0, 6.28, 0.001).name('Phi');
     gui.add(params, 'theta', 0, 6.28, 0.001).name('Theta');
     gui.add(params, 'spray', 0, 1, 0.01).name('Spread');
