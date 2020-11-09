@@ -24,6 +24,9 @@ import {
 
 import {
     sphCoords,
+    boyerLindquist,
+    ergoSphere,
+    eventHorizon,
     scalingFactor,
     state,
     // dState,
@@ -38,13 +41,19 @@ import {
 //internal variables
 let geometry;
 let material;
-let texMaterial;
-let glassMaterial;
-let colorMaterial;
+
 let curveMaterial;
+let glassMaterial;
+let horizonMaterial;
+let ergoMaterial;
+
+let texMaterial;
+let colorMaterial;
+
 let parametricMesh;
 
-let eventHorizon;
+let eventHorizon1, eventHorizon2;
+let ergoSphere1, ergoSphere2;
 let photonSphere;
 //let points;
 let curve;
@@ -241,9 +250,29 @@ function createMeshes(cubeTexture) {
         envMapIntensity: 1.,
         transmission: 0.9,
         clearcoat: 0.5,
-        side: THREE.DoubleSide,
+        // side: THREE.DoubleSide,
     });
 
+
+    horizonMaterial = new THREE.MeshPhysicalMaterial({
+        transparent: true,
+        color: 0x0,
+        envMap: cubeTexture,
+        envMapIntensity: 1.,
+        transmission: 0.5,
+        clearcoat: 0.5,
+        //side: THREE.DoubleSide,
+    });
+
+    ergoMaterial = new THREE.MeshPhysicalMaterial({
+        transparent: true,
+        color: 0xF55553,
+        envMap: cubeTexture,
+        envMapIntensity: 1.,
+        transmission: 0.5,
+        clearcoat: 0.5,
+        //side: THREE.DoubleSide,
+    });
 
     //    texMaterial = new THREE.MeshStandardMaterial({
     //        color: 0xffffff,
@@ -264,27 +293,41 @@ function createMeshes(cubeTexture) {
 
     //CREATE THE GEOMETRIES
 
-    //  parametric surface geometry
-    geometry = new THREE.SphereBufferGeometry(scalingFactor, 32, 32);
-    eventHorizon = new THREE.Mesh(geometry, colorMaterial);
-    eventHorizon.position.set(0, 0, 0);
-    scene.add(eventHorizon);
+    //outer Event Horizon
+    geometry = eventHorizon(params.a, 1);
+    eventHorizon1 = new THREE.Mesh(geometry, horizonMaterial);
+    //eventHorizon1.position.set(0, 0, 0);
+    scene.add(eventHorizon1);
+
+
+    //inner Event Horizon
+    geometry = eventHorizon(params.a, -1);
+    eventHorizon2 = new THREE.Mesh(geometry, horizonMaterial);
+    //eventHorizon2.position.set(0, 0, 0);
+    scene.add(eventHorizon2);
 
 
 
-    geometry = new THREE.SphereBufferGeometry(1.5 * scalingFactor, 32, 32);
-    photonSphere = new THREE.Mesh(geometry, glassMaterial);
-    photonSphere.position.set(0, 0, 0);
-    scene.add(photonSphere);
+    //outer ergosphere
+    geometry = ergoSphere(params.a, 1);
+    ergoSphere1 = new THREE.Mesh(geometry, glassMaterial);
+    //eventHorizon1.position.set(0, 0, 0);
+    scene.add(ergoSphere1);
 
 
-    //  parametric surface geometry
-    geometry = new THREE.SphereBufferGeometry(scalingFactor, 32, 32);
+    //inner ergosphere
+    geometry = ergoSphere(params.a, -1);
+    ergoSphere2 = new THREE.Mesh(geometry, colorMaterial);
+    //ergoSphere2.position.set(0, 0, 0);
+    scene.add(ergoSphere2);
 
-    parametricMesh = new THREE.Mesh(geometry, colorMaterial);
-    parametricMesh.position.set(0, 0, 0);
-    scene.add(parametricMesh);
 
+
+    //
+    //    geometry = new THREE.SphereBufferGeometry(1.5 * scalingFactor, 32, 32);
+    //    photonSphere = new THREE.Mesh(geometry, glassMaterial);
+    //    photonSphere.position.set(0, 0, 0);
+    //    scene.add(photonSphere);
 
 
 
@@ -435,10 +478,23 @@ function meshRotate(theMesh) {
 function meshUpdate(currentTime) {
 
 
-    // wiggle the parametric mesh
-    //    parametricMesh.geometry.dispose();
-    //    parametricMesh.geometry = createParametricSurface(currentTime);
-    //meshRotate(parametricMesh);
+    // adjust the horizons and ergospheres
+
+
+    eventHorizon1.geometry.dispose();
+    eventHorizon1.geometry = eventHorizon(params.a, 1);
+
+    eventHorizon2.geometry.dispose();
+    eventHorizon2.geometry = eventHorizon(params.a, -1);
+    // meshRotate(parametricMesh);
+
+
+    ergoSphere1.geometry.dispose();
+    ergoSphere1.geometry = ergoSphere(params.a, 1);
+
+    ergoSphere2.geometry.dispose();
+    ergoSphere2.geometry = ergoSphere(params.a, -1);
+    // meshRotate(parametricMesh);
 
 
 

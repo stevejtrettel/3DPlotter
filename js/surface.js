@@ -370,7 +370,7 @@ function equationUpdate() {
 //
 //    X = parser.evaluate('X(u,v,t,a,b,c)='.concat(params.xCoordText));
 //
-//    Y = parser.evaluate('Y(u,v,t,a,b,c)='.concat(params.yCoordText));
+//    Y =  ,cat(params.yCoordText));
 //
 //    Z = parser.evaluate('Z(u,v,t,a,b,c)='.concat(params.zCoordText));
 //

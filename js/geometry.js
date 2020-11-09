@@ -39,35 +39,89 @@ function sphCoords(phi, theta) {
 
 
 
+//oblate spheroid coords for Kerr black hole
+
+function boyerLindquist(r, phi, theta, a) {
+    let l = Math.sqrt(r * r + a * a);
+    let x = l * Math.cos(theta) * Math.sin(phi);
+    let y = l * Math.sin(theta) * Math.sin(phi);
+    let z = r * Math.cos(phi);
+    return new THREE.Vector3(x, y, z);
+}
+
+
+//parameters that are important for Kerr black hole
+
+function Delta(r, phi, theta, a) {
+    return r * r - r + a * a;
+}
+
+function Sigma(r, phi, theta, a) {
+    r * r + a * a * Math.cos(phi) * Math.cos(phi);
+}
+
+
 
 
 
 
 //
-////MAKING A PARAMETRIC SURFACE FUNCTIONS
+////MAKING THE SURFACES IN A KERR BLACK HOLE
 ////=============================================
-//
-//
-//function createParametricSurface(t) {
-//
-//    return new THREE.ParametricBufferGeometry(
-//        (u, v, dest) => {
-//
-//            //rescale based on the size of the parameterization domain
-//            let U = rescaleU(u);
-//            let V = rescaleV(v);
-//
-//            let P = surface(U, V, t);
-//
-//
-//            dest.set(P.x, P.y, P.z).multiplyScalar(scalingFactor);
-//        },
-//        params.res, params.res //slices and stacks
-//    )
-//
-//}
+
+function eventHorizon(a, n) {
+
+    return new THREE.ParametricBufferGeometry(
+        (u, v, dest) => {
+            let R = Math.sqrt(1 - a * a);
+            let r;
+            if (n < 0) {
+                r = 1 - R;
+            } else {
+                r = 1 + R;
+            }
+            //rescale based on the size of the parameterization domain
+            let theta = 2 * 3.14 * u;
+            let phi = 3.14 * v;
+
+            let P = boyerLindquist(r, phi, theta, a);
 
 
+            dest.set(P.x, P.z, -P.y).multiplyScalar(scalingFactor);
+        },
+        params.res, params.res //slices and stacks
+    )
+
+}
+
+
+function ergoSphere(a, n) {
+
+    return new THREE.ParametricBufferGeometry(
+        (u, v, dest) => {
+
+            //rescale based on the size of the parameterization domain
+            let theta = 2 * 3.14 * u;
+            let phi = 3.14 * v;
+
+
+            let R = Math.sqrt(1 - a * a * Math.cos(phi) * Math.cos(phi));
+            let r;
+            if (n < 0) {
+                r = 1 - R;
+            } else {
+                r = 1 + R;
+            }
+
+            let P = boyerLindquist(r, phi, theta, a);
+
+
+            dest.set(P.x, P.z, -P.y).multiplyScalar(scalingFactor);
+        },
+        params.res, params.res //slices and stacks
+    )
+
+}
 
 
 
@@ -224,43 +278,12 @@ function acceleration(state) {
 
     //schwarzchild geodesics are the integral curves of the following force, if you project off the time direction:
 
-    if (params.physics == 2) {
+    //the force law to get the geodesic actually depends on the angular momentum! Which is computed from the state:
+    let ang = state.pos.clone().cross(state.vel);
+    let L = ang.length();
+    let magnitude = 1.5 * L * L / (R * R * R * R * R);
+    acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(magnitude);
 
-
-        //the force law to get the geodesic actually depends on the angular momentum! Which is computed from the state:
-        let ang = state.pos.clone().cross(state.vel);
-        let L = ang.length();
-        let magnitude = 1.5 * L * L / (R * R * R * R * R);
-        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(magnitude);
-
-    } else if (params.physics == 0) {
-
-        //newtonian gravity sun
-        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(5 / (R * R * R));
-
-    }
-    //    
-    //    
-    //    else if (params.physics == 1) {
-    //
-    //        // the force for massive particles instead:
-    //
-    //        let ang = state.pos.clone().cross(state.vel);
-    //
-    //        //a gives the velocity
-    //        let L = ang.length();
-    //        L = L * params.a;
-    //
-    //        //add to the above a second contribution
-    //        let magnitude = 1.5 * L * L / (R * R * R * R * R) + 1 / (R * R * R);
-    //
-    //        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(magnitude);
-    //
-    //    }
-
-
-    //constant downwards gravity
-    //let acc = new THREE.Vector4(0., 0., -0.1, 0.);
 
     return acc;
 }
@@ -493,6 +516,9 @@ function createGeodesicSpray(t, spraySize) {
 
 export {
     sphCoords,
+    boyerLindquist,
+    eventHorizon,
+    ergoSphere,
     scalingFactor,
     state,
     dState,

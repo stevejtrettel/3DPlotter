@@ -18,7 +18,7 @@ let zCoordText = "(1+a)*sin(u)*sin(v)+0.3*sin(t)*sin(u*v)";
 let params = {
     uPercent: 1,
     vPercent: 1,
-    a: 1.,
+    a: .5,
     b: 0.5,
     c: 0.2,
     p: 0.39,
@@ -77,14 +77,15 @@ function createGUI() {
 
     //  let parameters = gui.addFolder('Geodesic');
 
-    gui.add(params, 'physics', {
-        Newtonian: 0,
-        Relativistic: 1,
-        Relativistic_Light: 2
-    }).name('Physics');
+    //    gui.add(params, 'physics', {
+    //        Newtonian: 0,
+    //        Relativistic: 1,
+    //        Relativistic_Light: 2
+    //    }).name('Physics');
 
+    gui.add(params, 'a', 0, 1, 0.001).name('a');
     gui.add(params, 'distance', 1, 10, 0.001).name('Distance');
-    gui.add(params, 'a', 0, 1, 0.001).name('Velocity');
+    // gui.add(params, 'a', 0, 1, 0.001).name('Velocity');
     gui.add(params, 'angle', 0, 6.28, 0.001).name('Phi');
     gui.add(params, 'theta', 0, 6.28, 0.001).name('Theta');
     gui.add(params, 'spray', 0, 1, 0.01).name('Spread');
