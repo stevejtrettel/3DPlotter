@@ -41,7 +41,7 @@ function sphCoords(phi, theta) {
 
 //oblate spheroid coords for Kerr black hole
 
-function boyerLindquist(r, phi, theta, a) {
+function boyerLindquist(r, theta, phi, a) {
     let l = Math.sqrt(r * r + a * a);
     let x = l * Math.cos(theta) * Math.sin(phi);
     let y = l * Math.sin(theta) * Math.sin(phi);
@@ -50,14 +50,28 @@ function boyerLindquist(r, phi, theta, a) {
 }
 
 
+//convert bL Coords to Cartesian
+function toCartesian(P, a) {
+    let r = P.x;
+    let theta = P.y;
+    let phi = P.z;
+
+    return boyerLindquist(r, theta, phi, a);
+}
+
+
+
+
 //parameters that are important for Kerr black hole
 
-function Delta(r, phi, theta, a) {
+function Delta(r, theta, phi, a) {
+
     return r * r - r + a * a;
 }
 
-function Sigma(r, phi, theta, a) {
-    r * r + a * a * Math.cos(phi) * Math.cos(phi);
+function Sigma(r, theta, phi, a) {
+
+    return r * r + a * a * Math.cos(phi) * Math.cos(phi);
 }
 
 
@@ -84,7 +98,7 @@ function eventHorizon(a, n) {
             let theta = 2 * 3.14 * u;
             let phi = 3.14 * v;
 
-            let P = boyerLindquist(r, phi, theta, a);
+            let P = boyerLindquist(r, theta, phi, a);
 
 
             dest.set(P.x, P.z, -P.y).multiplyScalar(scalingFactor);
@@ -113,7 +127,7 @@ function ergoSphere(a, n) {
                 r = 1 + R;
             }
 
-            let P = boyerLindquist(r, phi, theta, a);
+            let P = boyerLindquist(r, theta, phi, a);
 
 
             dest.set(P.x, P.z, -P.y).multiplyScalar(scalingFactor);
@@ -122,6 +136,205 @@ function ergoSphere(a, n) {
     )
 
 }
+
+
+
+
+
+
+
+
+
+//INTEGRATING THE GEODESIC EQUATION: CONSTANTS OF MOTION
+//===============================================================
+
+
+//given an initial state, find the constants of motion:
+
+function invariants(state) {
+
+    //coordinate order is r theta phi
+
+    let r = state.pos.x;
+    let theta = state.pos.y;
+    let phi = state.pos.z;
+
+    let pR = state.vel.x;
+    let pTheta = state.vel.y;
+    let pPhi = state.vel.z;
+
+
+
+    let E = 1;
+    let Lz = -pTheta;
+    let Q = pPhi * pPhi + Math.cos(phi) * Math.cos(phi) * (params.a * params.a * (-E * E) + (Lz * Lz) / (Math.sin(phi) * Math.sin(phi)));
+
+    return [E, Lz, Q];
+
+}
+
+
+function TrajectoryParameters(state, invariants) {
+
+    let a = params.a;
+
+    let r = state.x;
+    let theta = state.y;
+    let phi = state.z;
+
+
+    let E = invariants[0];
+    let Lz = invariants[1];
+    let Q = invariants[2];
+
+    let Phi = Q - Math.cos(phi) * Math.cos(phi) * (a * a * (-E * E) + (Lz * Lz) / (Math.sin(phi) * Math.sin(phi)));
+
+
+    let P = E * (r * r + a * a) - a * Lz;
+
+    let Del = Delta(r, theta, phi, a);
+
+
+    let R = P * P - Del * ((Lz - a * E) * (Lz - a * E) + Q);
+
+
+    return [Phi, P, R];
+
+}
+
+
+
+function velocity(state, invariants) {
+
+    let a = params.a;
+
+    let r = state.x;
+    let theta = state.y;
+    let phi = state.z;
+
+    let E = invariants[0];
+    let Lz = invariants[1];
+    let Q = invariants[2];
+
+    let T = TrajectoryParameters(state, invariants);
+
+    let Phi = T[0];
+    let P = T[1];
+    let R = T[2];
+
+    let Sig = Sigma(r, theta, phi, a);
+    let Del = Delta(r, theta, phi, a);
+
+    let dr = Math.sqrt(Math.abs(R)) / Sig;
+
+    let dTheta = -(a * E - Lz / (Math.sin(phi) * Math.sin(phi))) + a / Del * P;
+
+    let dPhi = Math.sqrt(Math.abs(Phi)) / Sig;
+
+    return new THREE.Vector3(dr, dTheta, dPhi);
+
+
+}
+
+
+
+function nudgePos(pos, vel, step) {
+    let p = pos.clone();
+    p.add(vel.clone().multiplyScalar(step));
+
+    return p;
+}
+
+
+//do Runge Kutta 4 for velocity
+function numIntegrate(pos, invariants, step) {
+
+
+    let step1 = pos.clone();
+    let k1 = velocity(step1, invariants);
+    k1.multiplyScalar(step);
+
+    let step2 = nudgePos(pos, k1, 0.5);
+    let k2 = velocity(step2, invariants);
+    k2.multiplyScalar(step);
+
+    let step3 = nudgePos(pos, k2, 0.5);
+    let k3 = velocity(step3, invariants);
+    k3.multiplyScalar(step);
+
+    let step4 = nudgePos(pos, k3, 1.);
+    let k4 = velocity(step4, invariants);
+    k4.multiplyScalar(step);
+
+
+    //make the final adjustment
+
+    k2.multiplyScalar(2);
+    k3.multiplyScalar(2);
+
+    let adjustment = k1;
+    adjustment.add(k2);
+    adjustment.add(k3);
+    adjustment.add(k4);
+
+    let soltn = nudgePos(pos, adjustment, 1 / 6);
+
+    return soltn;
+}
+
+
+
+
+//CREATING A TUBE GEOMETRY FOR GEODESICS
+//=============================================
+
+//integrate the geodesic flow
+function integrateKerrGeodesic(st) {
+
+    let samplePts = [];
+
+
+    //set the invariants
+    let inv = invariants(st);
+
+    //the initial condition is dSt
+    // let ui, vi;
+    let P, p, q, r;
+    let a = params.a;
+
+    P = st.pos;
+    let stopRad = 2.;
+
+    let numSteps = params.length / params.step;
+    let step = params.step;
+
+    for (let i = 0; i < numSteps; i++) {
+
+        p = toCartesian(P, a);
+        q = new THREE.Vector3(p.x, p.z, -p.y);
+
+        samplePts.push(q.clone().multiplyScalar(scalingFactor));
+
+
+        //if you are simulating relativistic physics and you enter the event horizon, stop: if classical - stop when you get inside of some small distance:
+
+        if (Math.abs(P.x) < 0.8 * stopRad) {
+            break;
+        }
+
+
+        P = numIntegrate(P, inv, step);
+
+    }
+
+    return samplePts;
+
+}
+
+
+
+
+
 
 
 
@@ -184,6 +397,8 @@ function nudge(st, dSt, step) {
 
     return new state(p, v);
 }
+
+
 
 
 
@@ -402,7 +617,7 @@ function integrateGeodesic(st) {
 
 //give the output as a curve
 function geodesicPath(st) {
-    let samplePts = integrateGeodesic(st);
+    let samplePts = integrateKerrGeodesic(st);
     return new THREE.CatmullRomCurve3(samplePts);
 }
 
