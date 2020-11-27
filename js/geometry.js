@@ -153,54 +153,75 @@ let acc = new THREE.Vector4();
 //======right now not being used==========
 //======the direct geodesic equations in 4 space =======
 
-function acceleration4D(state) {
-    let Rs = 1.;
+//function acceleration4D(state) {
+//    let Rs = 1.;
+//
+//    //unpack the position and velocity coordinates
+//    let x = state.pos.x;
+//    let y = state.pos.y;
+//    let z = state.pos.z;
+//    let t = state.pos.w;
+//
+//    let xP = state.vel.x;
+//    let yP = state.vel.y;
+//    let zP = state.vel.z;
+//    let tP = state.vel.w;
+//
+//
+//    let rho2 = x * x + y * y + z * z;
+//    let rho = Math.sqrt(rho2);
+//
+//    //the time derivative
+//    let tAcc = 4 * Rs * tP * (x * xP + y * yP * z * zP) /
+//        (rho * (rho2 - Rs * Rs));
+//
+//    //the space derivatives
+//    let C1 = 2 * Rs / (Rs + rho);
+//    let C2 = (Rs - rho) / (Math.pow(Rs + rho, 6)) * rho2 * rho * tP * tP;
+//    let C3 = 1 / rho2;
+//
+//    let xa = xP * xP + 2 * xP * (yP * yP + zP * zP) - x * (yP * yP + zP * zP);
+//    let xAcc = C1 * (C2 * x + C3 * xa);
+//
+//    let ya = yP * yP + 2 * yP * (xP * xP + zP * zP) - y * (xP * xP + zP * zP);
+//    let yAcc = C1 * (C2 * y + C3 * ya);
+//
+//    let za = zP * zP + 2 * zP * (xP * xP + yP * yP) - z * (xP * xP + yP * yP);
+//    let zAcc = C1 * (C2 * z + C3 * za);
+//
+//    let acc = new THREE.Vector4(xAcc, yAcc, zAcc, tAcc);
+//
+//    return acc;
+//}
 
-    //unpack the position and velocity coordinates
-    let x = state.pos.x;
-    let y = state.pos.y;
-    let z = state.pos.z;
-    let t = state.pos.w;
-
-    let xP = state.vel.x;
-    let yP = state.vel.y;
-    let zP = state.vel.z;
-    let tP = state.vel.w;
 
 
-    let rho2 = x * x + y * y + z * z;
-    let rho = Math.sqrt(rho2);
 
-    //the time derivative
-    let tAcc = 4 * Rs * tP * (x * xP + y * yP * z * zP) /
-        (rho * (rho2 - Rs * Rs));
 
-    //the space derivatives
-    let C1 = 2 * Rs / (Rs + rho);
-    let C2 = (Rs - rho) / (Math.pow(Rs + rho, 6)) * rho2 * rho * tP * tP;
-    let C3 = 1 / rho2;
+function sphTangent(p1, p2) {
 
-    let xa = xP * xP + 2 * xP * (yP * yP + zP * zP) - x * (yP * yP + zP * zP);
-    let xAcc = C1 * (C2 * x + C3 * xa);
+    let r1 = p1.length();
+    let r2 = p2.length();
+    let R = r2 - r1;
+    let u1 = new THREE.Vector3(p1.x, p1.y, p1.z).normalize();
+    let u2 = new THREE.Vector3(p2.x, p2.y, p2.z).normalize();
+    let cTheta = u1.dot(u2);
+    let ang = Math.abs(Math.acos(cTheta));
+    return [R, ang];
 
-    let ya = yP * yP + 2 * yP * (xP * xP + zP * zP) - y * (xP * xP + zP * zP);
-    let yAcc = C1 * (C2 * y + C3 * ya);
-
-    let za = zP * zP + 2 * zP * (xP * xP + yP * yP) - z * (xP * xP + yP * yP);
-    let zAcc = C1 * (C2 * z + C3 * za);
-
-    let acc = new THREE.Vector4(xAcc, yAcc, zAcc, tAcc);
-
-    return acc;
 }
 
+function deltaT(p1, p2) {
+    let r1 = p1.clone().length();
+    let dat = sphTangent(p1, p2);
+    let dr = dat[0];
+    let dw = dat[1];
+    //given two positions in R3 find straight line path between them with null tangent at initial point:
+    let C = 1 / (1 - 1 / r1);
+    let dt2 = C * (C * dr * dr + r1 * r1 * dw * dw);
 
-
-
-
-
-
-
+    return Math.sqrt(Math.abs(dt2));
+}
 
 //what is the force field we are subject to?
 function acceleration(state) {
@@ -212,6 +233,9 @@ function acceleration(state) {
     let z = state.pos.z;
     let t = state.pos.w;
 
+    let rho2 = x * x + y * y + z * z;
+    let rho = Math.sqrt(rho2);
+
     let R = Math.sqrt(x * x + y * y + z * z);
 
     let xP = state.vel.x;
@@ -221,46 +245,14 @@ function acceleration(state) {
 
     let acc;
 
+    //the force law to get the geodesic actually depends on the angular momentum! Which is computed from the state:
+    let p = state.pos.clone();
+    let q = new THREE.Vector3(p.x, p.y, p.z);
+    let ang = q.cross(state.vel);
+    let L = ang.length();
+    let magnitude = 1.5 * L * L / (R * R * R * R * R);
 
-    //schwarzchild geodesics are the integral curves of the following force, if you project off the time direction:
-
-    if (params.physics == 2) {
-
-
-        //the force law to get the geodesic actually depends on the angular momentum! Which is computed from the state:
-        let ang = state.pos.clone().cross(state.vel);
-        let L = ang.length();
-        let magnitude = 1.5 * L * L / (R * R * R * R * R);
-        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(magnitude);
-
-    } else if (params.physics == 0) {
-
-        //newtonian gravity sun
-        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(5 / (R * R * R));
-
-    }
-    //    
-    //    
-    //    else if (params.physics == 1) {
-    //
-    //        // the force for massive particles instead:
-    //
-    //        let ang = state.pos.clone().cross(state.vel);
-    //
-    //        //a gives the velocity
-    //        let L = ang.length();
-    //        L = L * params.a;
-    //
-    //        //add to the above a second contribution
-    //        let magnitude = 1.5 * L * L / (R * R * R * R * R) + 1 / (R * R * R);
-    //
-    //        acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(magnitude);
-    //
-    //    }
-
-
-    //constant downwards gravity
-    //let acc = new THREE.Vector4(0., 0., -0.1, 0.);
+    acc = new THREE.Vector4(-x, -y, -z, 0).multiplyScalar(magnitude);
 
     return acc;
 }
@@ -312,6 +304,14 @@ function rk4(state, step) {
 
     let soltn = nudge(state, adjustment, 1 / 6);
 
+
+    //now fix the time coordinate between the initial and the final:
+    let dt = deltaT(state.pos, soltn.pos);
+
+
+    //crush the time axis a bit
+    soltn.pos.w += dt / 10;
+
     return soltn;
 }
 
@@ -343,13 +343,12 @@ function integrateGeodesic(st) {
         ui = (st.pos).x;
         vi = (st.pos).y;
 
-        //project away the time coordinate, just draw space:
-
+        //
         P = st.pos;
 
         //rotate so xyz is normal:
         //p.w is the time component:
-        p = new THREE.Vector3(P.x, P.z, -P.y);
+        p = new THREE.Vector3(P.x, P.w, -P.y);
         // console.log(p);
         //append points to the list
         samplePts.push(p.clone().multiplyScalar(scalingFactor));
@@ -357,11 +356,11 @@ function integrateGeodesic(st) {
 
         //if you are simulating relativistic physics and you enter the event horizon, stop: if classical - stop when you get inside of some small distance:
         let stopRad = 1.;
-        if (params.physics == 0) {
-            stopRad = 0.2
-        }
-
-        if (p.length() < 0.8 * stopRad) {
+        //        if (params.physics == 0) {
+        //            stopRad = 0.2
+        //        }
+        let q = new THREE.Vector3(P.x, P.y, P.z);
+        if (q.length() < 0.8 * stopRad) {
             break;
         }
 
@@ -418,7 +417,7 @@ function geodesicGeometry(t, n, widthFactor) {
 
     //initial tangent vector to geodesic;
     let st = flatSprayCondition(t, n);
-    console.log(st);
+    // console.log(st);
     //let st = new state(new THREE.Vector2(0.5, 0.5), new THREE.Vector2(1, 0));
 
     //this saves to 'points' the tube

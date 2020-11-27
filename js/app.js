@@ -137,7 +137,7 @@
             controls = new OrbitControls(camera, container);
             controls.addEventListener('change', render);
             controls.minDistance = 10;
-            controls.maxDistance = 150;
+            controls.maxDistance = 350;
             controls.enablePan = true;
         }
 

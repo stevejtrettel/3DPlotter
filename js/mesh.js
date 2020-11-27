@@ -75,23 +75,10 @@ function flatSprayCondition(s, n) {
     let wiggle = params.wiggle / 10;
     //==== INITIAL POSITION
 
-    //start from center
-    let pos = new THREE.Vector3(1 / 3, 1 / 3, -1).multiplyScalar(params.distance);
-
-
-
-    //start from a corner
-    //let pos = new THREE.Vector2(uMin + uRng / 8, vMin + uRng / 8);
-
+    let pos = new THREE.Vector4(1, 0, 0, -1).multiplyScalar(params.distance);
 
     //===== SPACING
     let spacing = 3.14 / 90;
-
-    //rotate back and forth
-    //let theta = 3.14 / 8. * (Math.sin(t / 3) + 1) + 3.14 / 8 + n * 3.14 / 90;
-
-    //rotate in a circle
-    //let theta = t / 5 + n * spacing;
 
     //control angle with slider
     let theta = params.angle + n * spacing + Math.cos(s) * wiggle;
@@ -265,14 +252,14 @@ function createMeshes(cubeTexture) {
     //CREATE THE GEOMETRIES
 
     //  parametric surface geometry
-    geometry = new THREE.SphereBufferGeometry(scalingFactor, 32, 32);
+    geometry = new THREE.CylinderBufferGeometry(scalingFactor, scalingFactor, 1000, 32);
     eventHorizon = new THREE.Mesh(geometry, colorMaterial);
     eventHorizon.position.set(0, 0, 0);
     scene.add(eventHorizon);
 
 
 
-    geometry = new THREE.SphereBufferGeometry(1.5 * scalingFactor, 32, 32);
+    geometry = new THREE.CylinderBufferGeometry(1.5 * scalingFactor, 1.5 * scalingFactor, 1000, 32);
     photonSphere = new THREE.Mesh(geometry, glassMaterial);
     photonSphere.position.set(0, 0, 0);
     scene.add(photonSphere);
@@ -292,12 +279,12 @@ function createMeshes(cubeTexture) {
     //===============================================
     // flat geodesic spray 
     //================================================
-
-    if (params.family == 0) {
-        geometry = createGeodesicSpray(0, 10. * params.spray);
-        curveMesh = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curveMesh);
-    }
+    //
+    // if (params.family == 0) {
+    geometry = createGeodesicSpray(0, 10. * params.spray);
+    curveMesh = new THREE.Mesh(geometry, curveMaterial);
+    scene.add(curveMesh);
+    //    }
 
 
 
@@ -306,69 +293,69 @@ function createMeshes(cubeTexture) {
     // 3d spray
     //================================================
 
-    if (params.family == 1) {
-
-
-
-        //instead of a giant spray, just a single ring:
-        let iniState = initialCondition(0);
-
-        geometry = new THREE.SphereBufferGeometry(0.5, 32, 32);
-        iniSphere = new THREE.Mesh(geometry, curveMaterial);
-        let p = iniState.pos.multiplyScalar(scalingFactor);
-        iniSphere.position.set(p.x, p.z, -p.y);
-        scene.add(iniSphere);
-
-
-
-        velList = singleRing(iniState, 0);
-        curves = sprayPath(velList);
-
-        geometry = new THREE.TubeBufferGeometry(curves[0], 5 * params.length, 0.2, 15, false);
-        curve0 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve0);
-
-        geometry = new THREE.TubeBufferGeometry(curves[1], 5 * params.length, 0.15, 15, false);
-        curve1 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve1);
-
-        geometry = new THREE.TubeBufferGeometry(curves[2], 5 * params.length, 0.1, 15, false);
-        curve2 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve2);
-
-        geometry = new THREE.TubeBufferGeometry(curves[3], 5 * params.length, 0.15, 15, false);
-        curve3 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve3);
-
-        geometry = new THREE.TubeBufferGeometry(curves[4], 5 * params.length, 0.1, 15, false);
-        curve4 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve4);
-
-        geometry = new THREE.TubeBufferGeometry(curves[5], 5 * params.length, 0.15, 15, false);
-        curve5 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve5);
-
-        geometry = new THREE.TubeBufferGeometry(curves[6], 5 * params.length, 0.1, 15, false);
-        curve6 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve6);
-
-        geometry = new THREE.TubeBufferGeometry(curves[7], 5 * params.length, 0.15, 15, false);
-        curve7 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve7);
-
-        geometry = new THREE.TubeBufferGeometry(curves[8], 5 * params.length, 0.1, 15, false);
-        curve8 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve8);
-
-        geometry = new THREE.TubeBufferGeometry(curves[9], 5 * params.length, 0.15, 15, false);
-        curve9 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve9);
-
-        geometry = new THREE.TubeBufferGeometry(curves[10], 5 * params.length, 0.1, 15, false);
-        curve10 = new THREE.Mesh(geometry, curveMaterial);
-        scene.add(curve10);
-
-    }
+    //    if (params.family == 1) {
+    //
+    //
+    //
+    //        //instead of a giant spray, just a single ring:
+    //        let iniState = initialCondition(0);
+    //
+    //        geometry = new THREE.SphereBufferGeometry(0.5, 32, 32);
+    //        iniSphere = new THREE.Mesh(geometry, curveMaterial);
+    //        let p = iniState.pos.multiplyScalar(scalingFactor);
+    //        iniSphere.position.set(p.x, p.z, -p.y);
+    //        scene.add(iniSphere);
+    //
+    //
+    //
+    //        velList = singleRing(iniState, 0);
+    //        curves = sprayPath(velList);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[0], 5 * params.length, 0.2, 15, false);
+    //        curve0 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve0);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[1], 5 * params.length, 0.15, 15, false);
+    //        curve1 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve1);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[2], 5 * params.length, 0.1, 15, false);
+    //        curve2 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve2);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[3], 5 * params.length, 0.15, 15, false);
+    //        curve3 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve3);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[4], 5 * params.length, 0.1, 15, false);
+    //        curve4 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve4);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[5], 5 * params.length, 0.15, 15, false);
+    //        curve5 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve5);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[6], 5 * params.length, 0.1, 15, false);
+    //        curve6 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve6);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[7], 5 * params.length, 0.15, 15, false);
+    //        curve7 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve7);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[8], 5 * params.length, 0.1, 15, false);
+    //        curve8 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve8);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[9], 5 * params.length, 0.15, 15, false);
+    //        curve9 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve9);
+    //
+    //        geometry = new THREE.TubeBufferGeometry(curves[10], 5 * params.length, 0.1, 15, false);
+    //        curve10 = new THREE.Mesh(geometry, curveMaterial);
+    //        scene.add(curve10);
+    //
+    //    }
 
 
 }
@@ -424,8 +411,8 @@ function meshRotate(theMesh) {
     //updates to the meshes in the scene
     theMesh.rotation.y += params.zRotation / 100 + params.tumble / 100;
 
-    theMesh.rotation.x += params.tumble / 100;
-    theMesh.rotation.z += params.tumble / 100;
+    //theMesh.rotation.x += params.tumble / 100;
+    //theMesh.rotation.z += params.tumble / 100;
 }
 
 
@@ -445,13 +432,13 @@ function meshUpdate(currentTime) {
     //===============================================
     // flat geodesic spray 
     //================================================
-    if (params.family == 0) {
-        //    meshRotate(curveMesh);
-        // wiggle the curve mesh
-        curveMesh.geometry.dispose();
-        curveMesh.geometry = createGeodesicSpray(currentTime, 10. * params.spray);
-        //
-    }
+    //   if (params.family == 0) {
+    //    meshRotate(curveMesh);
+    // wiggle the curve mesh
+    curveMesh.geometry.dispose();
+    curveMesh.geometry = createGeodesicSpray(currentTime, 10. * params.spray);
+    //
+    //   }
 
 
 
@@ -462,43 +449,43 @@ function meshUpdate(currentTime) {
     // 3d spray
     //================================================
 
-    if (params.family == 1) {
-
-        let iniState = initialCondition(currentTime);
-        let p = iniState.pos.clone().multiplyScalar(scalingFactor);
-        iniSphere.position.set(p.x, p.z, -p.y);
-
-        velList = singleRing(iniState, currentTime);
-        curves = sprayPath(velList);
-
-        curve0.geometry.dispose();
-        curve1.geometry.dispose();
-        curve2.geometry.dispose();
-        curve3.geometry.dispose();
-        curve4.geometry.dispose();
-        curve5.geometry.dispose();
-        curve6.geometry.dispose();
-        curve7.geometry.dispose();
-        curve8.geometry.dispose();
-        curve9.geometry.dispose();
-        curve10.geometry.dispose();
-
-
-        curve0.geometry = new THREE.TubeBufferGeometry(curves[0], 5 * params.length, 0.2, 15, false);
-
-        curve1.geometry = new THREE.TubeBufferGeometry(curves[1], 5 * params.length, 0.15, 15, false);
-        curve2.geometry = new THREE.TubeBufferGeometry(curves[2], 5 * params.length, 0.1, 15, false);
-        curve3.geometry = new THREE.TubeBufferGeometry(curves[3], 5 * params.length, 0.15, 15, false);
-        curve4.geometry = new THREE.TubeBufferGeometry(curves[4], 5 * params.length, 0.1, 15, false);
-        curve5.geometry = new THREE.TubeBufferGeometry(curves[5], 5 * params.length, 0.15, 15, false);
-
-        curve6.geometry = new THREE.TubeBufferGeometry(curves[6], 5 * params.length, 0.1, 15, false);
-        curve7.geometry = new THREE.TubeBufferGeometry(curves[7], 5 * params.length, 0.15, 15, false);
-        curve8.geometry = new THREE.TubeBufferGeometry(curves[8], 5 * params.length, 0.1, 15, false);
-        curve9.geometry = new THREE.TubeBufferGeometry(curves[9], 5 * params.length, 0.15, 15, false);
-        curve10.geometry = new THREE.TubeBufferGeometry(curves[10], 5 * params.length, 0.1, 15, false);
-
-    }
+    //    if (params.family == 1) {
+    //
+    //        let iniState = initialCondition(currentTime);
+    //        let p = iniState.pos.clone().multiplyScalar(scalingFactor);
+    //        iniSphere.position.set(p.x, p.z, -p.y);
+    //
+    //        velList = singleRing(iniState, currentTime);
+    //        curves = sprayPath(velList);
+    //
+    //        curve0.geometry.dispose();
+    //        curve1.geometry.dispose();
+    //        curve2.geometry.dispose();
+    //        curve3.geometry.dispose();
+    //        curve4.geometry.dispose();
+    //        curve5.geometry.dispose();
+    //        curve6.geometry.dispose();
+    //        curve7.geometry.dispose();
+    //        curve8.geometry.dispose();
+    //        curve9.geometry.dispose();
+    //        curve10.geometry.dispose();
+    //
+    //
+    //        curve0.geometry = new THREE.TubeBufferGeometry(curves[0], 5 * params.length, 0.2, 15, false);
+    //
+    //        curve1.geometry = new THREE.TubeBufferGeometry(curves[1], 5 * params.length, 0.15, 15, false);
+    //        curve2.geometry = new THREE.TubeBufferGeometry(curves[2], 5 * params.length, 0.1, 15, false);
+    //        curve3.geometry = new THREE.TubeBufferGeometry(curves[3], 5 * params.length, 0.15, 15, false);
+    //        curve4.geometry = new THREE.TubeBufferGeometry(curves[4], 5 * params.length, 0.1, 15, false);
+    //        curve5.geometry = new THREE.TubeBufferGeometry(curves[5], 5 * params.length, 0.15, 15, false);
+    //
+    //        curve6.geometry = new THREE.TubeBufferGeometry(curves[6], 5 * params.length, 0.1, 15, false);
+    //        curve7.geometry = new THREE.TubeBufferGeometry(curves[7], 5 * params.length, 0.15, 15, false);
+    //        curve8.geometry = new THREE.TubeBufferGeometry(curves[8], 5 * params.length, 0.1, 15, false);
+    //        curve9.geometry = new THREE.TubeBufferGeometry(curves[9], 5 * params.length, 0.15, 15, false);
+    //        curve10.geometry = new THREE.TubeBufferGeometry(curves[10], 5 * params.length, 0.1, 15, false);
+    //
+    //    }
 
 }
 

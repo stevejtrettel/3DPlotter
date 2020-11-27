@@ -22,7 +22,7 @@ let params = {
     b: 0.5,
     c: 0.2,
     p: 0.39,
-    family: 1,
+    family: 0,
     physics: 2,
     distance: 5,
     angle: 2.84,
@@ -77,11 +77,11 @@ function createGUI() {
 
     //  let parameters = gui.addFolder('Geodesic');
 
-    gui.add(params, 'physics', {
-        Newtonian: 0,
-        Relativistic: 1,
-        Relativistic_Light: 2
-    }).name('Physics');
+//    gui.add(params, 'physics', {
+//        Newtonian: 0,
+//        Relativistic: 1,
+//        Relativistic_Light: 2
+//    }).name('Physics');
 
     gui.add(params, 'distance', 1, 10, 0.001).name('Distance');
     gui.add(params, 'a', 0, 1, 0.001).name('Velocity');
