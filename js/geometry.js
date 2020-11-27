@@ -19,7 +19,8 @@ import {
 //} from './surface.js';
 
 import {
-    flatSprayCondition
+    flatSprayCondition,
+    coneSprayCondition
 } from './mesh.js';
 
 let points;
@@ -310,7 +311,7 @@ function rk4(state, step) {
 
 
     //crush the time axis a bit
-    soltn.pos.w += dt / 10;
+    soltn.pos.w += dt;
 
     return soltn;
 }
@@ -416,7 +417,7 @@ function geodesicGeometry(t, n, widthFactor) {
     let samplePts;
 
     //initial tangent vector to geodesic;
-    let st = flatSprayCondition(t, n);
+    let st = coneSprayCondition(t, n);
     // console.log(st);
     //let st = new state(new THREE.Vector2(0.5, 0.5), new THREE.Vector2(1, 0));
 

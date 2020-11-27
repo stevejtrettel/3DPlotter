@@ -92,6 +92,27 @@ function flatSprayCondition(s, n) {
 
 
 
+//gives the initial condition as a function of time
+//n is the number of curve we are on
+//s is time
+function coneSprayCondition(s, n) {
+
+    let wiggle = params.wiggle / 10;
+    //==== INITIAL POSITION
+
+    let pos = new THREE.Vector4(1, 0, 0, -1).multiplyScalar(params.distance);
+
+    //control angle with slider
+    let theta = 6.28 / 10 * n + s;
+
+    //assemble the velocity vector
+    let vel = new THREE.Vector4(Math.cos(theta), Math.sin(theta), 0, 1.);
+
+    return new state(pos, vel);
+
+}
+
+
 
 
 function initialCondition(t) {
@@ -494,6 +515,7 @@ function meshUpdate(currentTime) {
 
 export {
     flatSprayCondition,
+    coneSprayCondition,
     initialCondition,
     createMeshes,
     guiMeshUpdate,
